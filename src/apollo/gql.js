@@ -254,6 +254,7 @@ export const SPAN_QUERIES={
   get:gql`query getSpans($page: Int, $limit: Int) {
     spans(page: $page, limit: $limit) {
       data {
+        _id
         project {
           name
           status
@@ -292,8 +293,14 @@ export const SPAN_QUERIES={
   ${CHAPTER_FRAGMENT}
       ${PAGINATION_FRAGMENT}
     `,
-  update:gql`mutation updateSpan($id: ID!, $spanInput: SpanInput!) {
-    updateSpan(id: $id, spanInput: $spanInput) 
+  update:gql` mutation UpdateSpan($id: ID!, $name: String, $startPoint: terminalInput, $endPoint: terminalInput, $status: SpanStatusEnum) {
+    updateSpan(_id: $id, name: $name, startPoint: $startPoint, endPoint: $endPoint, status: $status)
+  }`,
+  addStaff:gql` mutation AddStaff($id: ID!, $userId: ID!) {
+    addStaff(_id: $id, userID: $userId) { _id }
+  }`,
+  removeStaff:gql` mutation RemoveStaff($id: ID!, $userId: ID!) {
+    removeStaff(_id: $id, userID: $userId) { _id }
   }`,
 }
 

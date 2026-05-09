@@ -6,8 +6,13 @@ import {
   EmptyState,
   AlertBanner,
   Tabs,
+  Spinner,
 } from "../../../components/common/index.jsx";
-import { LIST_PROJECTS, SPAN_QUERIES } from "../../../apollo/gql.js";
+import {
+  LIST_PROJECTS,
+  LIST_USERS,
+  SPAN_QUERIES,
+} from "../../../apollo/gql.js";
 import { useMutation, useQuery } from "@apollo/client";
 
 const PROGRESS_STAGES = [
@@ -46,10 +51,8 @@ export default function SpanManagement() {
     fetchPolicy: "cache-and-network",
     variables: { page: 1, limit: 10 },
   });
-  const [
-    createSpan,
-    { loading: creatingSpanLoading, error: creatingSpanError },
-  ] = useMutation(SPAN_QUERIES.create);
+  const [createSpan] = useMutation(SPAN_QUERIES.create);
+  const [updateSpan] = useMutation(SPAN_QUERIES.update);
   const spans = spansData?.spans?.data ?? [];
   const [view, setView] = useState("list"); // list | form | detail
   const [activeSpan, setActive] = useState(null);
@@ -78,7 +81,31 @@ export default function SpanManagement() {
 
   const saveSpan = async (span) => {
     if (span._id) {
-      //setSpans(ss => ss.map(s => s._id === span._id ? span : s));
+      await updateSpan({
+        variables: {
+          id: span._id,
+          name: span.name,
+          status: span.status,
+          startPoint: {
+            placeName: span.startPoint.placeName,
+            pointLocation: {
+              type: "Point",
+              coordinates: span.startPoint.pointLocation.coordinates,
+            },
+          },
+          endPoint: {
+            placeName: span.endPoint.placeName,
+            pointLocation: {
+              type: "Point",
+              coordinates: span.endPoint.pointLocation.coordinates,
+            },
+          },
+        },
+        update(cache) {
+          cache.evict({ fieldName: "spans" });
+          cache.gc();
+        },
+      });
     } else {
       const spanInput = {
         Vault: span.Vault,
@@ -115,8 +142,8 @@ export default function SpanManagement() {
           cache.gc();
         },
       });
-      //setSpans(ss => [...ss, { ...span, _id: `s${Date.now()}` }]);
     }
+    spansRefetch();
     setView("list");
   };
 
@@ -566,13 +593,24 @@ function SpanForm({ span: initial, projects, onSave, onCancel }) {
   const captureGPS = (point) => {
     navigator.geolocation?.getCurrentPosition(
       (pos) => {
-        set(`${point}.pointLocation.coordinates`, [
-          pos.coords.latitude,
-          pos.coords.longitude,
-        ]);
+        setSpan((s) => {
+          const updated = JSON.parse(JSON.stringify(s));
+          updated[point].pointLocation = {
+            type: "Point",
+            coordinates: [pos.coords.latitude, pos.coords.longitude],
+          };
+          return updated;
+        });
       },
       () => alert("GPS capture failed."),
     );
+  };
+  const setCoord = (point, idx, val) => {
+    setSpan((s) => {
+      const updated = JSON.parse(JSON.stringify(s));
+      updated[point].pointLocation.coordinates[idx] = Number(val);
+      return updated;
+    });
   };
 
   // When project changes — pull all work items as vendor units (all included by default)
@@ -780,21 +818,35 @@ function SpanForm({ span: initial, projects, onSave, onCancel }) {
                 ))}
               </select> */}
             </FormField>
-            {/* <FormField label="Progress Status">
+            <FormField label="Progress Status">
               <div style={{ display: "flex", gap: 8 }}>
-                {PROGRESS_STAGES.map(ps => (
-                  <button key={ps.value} type="button"
+                {PROGRESS_STAGES.map((ps) => (
+                  <button
+                    key={ps.value}
+                    type="button"
                     onClick={() => set("status", ps.value)}
-                    style={{ flex: 1, padding: "8px 0", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer", transition: "all .15s",
-                      border:      `1px solid ${span.status === ps.value ? ps.color : "var(--border)"}`,
-                      background:  span.status === ps.value ? ps.color + "22" : "rgba(255,255,255,.03)",
-                      color:       span.status === ps.value ? ps.color        : "var(--text2)",
-                    }}>
+                    style={{
+                      flex: 1,
+                      padding: "8px 0",
+                      borderRadius: 8,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      transition: "all .15s",
+                      border: `1px solid ${span.status === ps.value ? ps.color : "var(--border)"}`,
+                      background:
+                        span.status === ps.value
+                          ? ps.color + "22"
+                          : "rgba(255,255,255,.03)",
+                      color:
+                        span.status === ps.value ? ps.color : "var(--text2)",
+                    }}
+                  >
                     ● {ps.label}
                   </button>
                 ))}
               </div>
-            </FormField> */}
+            </FormField>
           </div>
         )}
 
@@ -850,12 +902,7 @@ function SpanForm({ span: initial, projects, onSave, onCancel }) {
                       type="number"
                       step="0.000001"
                       value={span[key].pointLocation.coordinates[0]}
-                      onChange={(e) =>
-                        set(
-                          `${key}.pointLocation.coordinates[0]`,
-                          e.target.value,
-                        )
-                      }
+                      onChange={(e) => setCoord(key, 0, e.target.value)}
                       placeholder="17.432600"
                     />
                   </FormField>
@@ -865,12 +912,7 @@ function SpanForm({ span: initial, projects, onSave, onCancel }) {
                       type="number"
                       step="0.000001"
                       value={span[key].pointLocation.coordinates[1]}
-                      onChange={(e) =>
-                        set(
-                          `${key}.pointLocation.coordinates[1]`,
-                          e.target.value,
-                        )
-                      }
+                      onChange={(e) => setCoord(key, 1, e.target.value)}
                       placeholder="78.501300"
                     />
                   </FormField>
@@ -1136,6 +1178,7 @@ function SpanDetail({ span: s, projects, onBack, onEdit }) {
     { id: "route", label: "Route", icon: "🗺️" },
     { id: "workitems", label: "Work Items", icon: "📦" },
     { id: "vault", label: "Vault", icon: "💰" },
+    { id: "staff", label: "Staff", icon: "👥" },
   ];
 
   return (
@@ -1468,7 +1511,6 @@ function SpanDetail({ span: s, projects, onBack, onEdit }) {
           )}
         </div>
       )}
-
       {/* ── Vault */}
       {tab === "vault" && (
         <div className="card">
@@ -1620,6 +1662,174 @@ function SpanDetail({ span: s, projects, onBack, onEdit }) {
           )}
         </div>
       )}
+      {tab === "staff" && (
+        <StaffPanel spanId={s._id} existingStaff={s.staff || []} />
+      )}
+    </div>
+  );
+}
+
+
+// ─── Staff Panel ──────────────────────────────────────────────────
+function StaffPanel({ spanId, existingStaff }) {
+  const [search, setSearch] = useState("");
+  const [apiError, setApiError] = useState("");
+
+  const { data: usersData, loading: usersLoading } = useQuery(LIST_USERS, {
+    fetchPolicy: "cache-and-network",
+    variables: { page: 1, limit: 50 },
+  });
+
+  const [addStaff,    { loading: adding   }] = useMutation(SPAN_QUERIES.addStaff);
+  const [removeStaff, { loading: removing }] = useMutation(SPAN_QUERIES.removeStaff);
+
+  const allUsers    = usersData?.users?.data ?? [];
+  const staffIds    = new Set((existingStaff).map((u) => u._id ?? u));
+  const staffUsers  = allUsers.filter((u) => staffIds.has(u._id));
+  const searchLower = search.toLowerCase();
+  const available   = allUsers.filter(
+    (u) =>
+      !staffIds.has(u._id) &&
+      (u.name?.toLowerCase().includes(searchLower) ||
+        u.email?.toLowerCase().includes(searchLower)),
+  );
+
+  const invalidate = (cache) => {
+    cache.evict({ fieldName: "spans" });
+    cache.gc();
+  };
+
+  const handleAdd = async (userId) => {
+    setApiError("");
+    try {
+      await addStaff({
+        variables: { id: spanId, userId },
+        update: invalidate,
+      });
+    } catch (e) {
+      setApiError(e.message);
+    }
+  };
+
+  const handleRemove = async (userId) => {
+    setApiError("");
+    try {
+      await removeStaff({
+        variables: { id: spanId, userId },
+        update: invalidate,
+      });
+    } catch (e) {
+      setApiError(e.message);
+    }
+  };
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+
+      {/* Current staff */}
+      <div className="card">
+        <div className="card-header">
+          <span className="card-title">👷 Assigned Staff ({staffUsers.length})</span>
+        </div>
+        {apiError && <AlertBanner type="error" message={apiError} />}
+        {staffUsers.length === 0 ? (
+          <EmptyState icon="👤" title="No staff assigned" message="Add staff from the list on the right." />
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {staffUsers.map((u) => (
+              <div
+                key={u._id}
+                style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "10px 12px", borderRadius: 8,
+                  background: "rgba(255,255,255,.03)",
+                  border: "1px solid var(--border)",
+                }}
+              >
+                <div style={{
+                  width: 30, height: 30, borderRadius: "50%",
+                  background: "rgba(34,197,94,.2)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 11, fontWeight: 700, flexShrink: 0,
+                }}>
+                  {(u.name || "?").trim().split(/\s+/).map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>{u.name}</div>
+                  <div style={{ fontSize: 11, color: "var(--text2)" }}>{u.designation || u.role || u.email}</div>
+                </div>
+                <button
+                  className="btn btn-danger btn-sm"
+                  style={{ flexShrink: 0 }}
+                  disabled={removing}
+                  onClick={() => handleRemove(u._id)}
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Add staff */}
+      <div className="card">
+        <div className="card-header">
+          <span className="card-title">➕ Add Staff</span>
+        </div>
+        <div style={{ marginBottom: 12 }}>
+          <input
+            className="form-control"
+            placeholder="🔍 Search by name or email…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        {usersLoading ? (
+          <div style={{ display: "flex", justifyContent: "center", padding: 24 }}>
+            <Spinner size={24} />
+          </div>
+        ) : available.length === 0 ? (
+          <div style={{ fontSize: 12, color: "var(--text3)", textAlign: "center", padding: "16px 0" }}>
+            {search ? "No users match your search." : "All users are already assigned."}
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 400, overflowY: "auto" }}>
+            {available.map((u) => (
+              <div
+                key={u._id}
+                style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "10px 12px", borderRadius: 8,
+                  background: "rgba(255,255,255,.03)",
+                  border: "1px solid var(--border)",
+                }}
+              >
+                <div style={{
+                  width: 30, height: 30, borderRadius: "50%",
+                  background: "rgba(59,130,246,.2)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 11, fontWeight: 700, flexShrink: 0,
+                }}>
+                  {(u.name || "?").trim().split(/\s+/).map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>{u.name}</div>
+                  <div style={{ fontSize: 11, color: "var(--text2)" }}>{u.designation || u.role || u.email}</div>
+                </div>
+                <button
+                  className="btn btn-success btn-sm"
+                  style={{ flexShrink: 0 }}
+                  disabled={adding}
+                  onClick={() => handleAdd(u._id)}
+                >
+                  Add
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
