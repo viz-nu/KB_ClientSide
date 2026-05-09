@@ -3,7 +3,6 @@ import {
   AlertBanner,
 } from "../../../../components/common/index.jsx";
 import { CHAPTERS_N } from "../../../../constants/scheduleN.js";
-import { useEmbForm } from "../../../../hooks/useEmbForm.js";
 
 export default function StepBasicInfo({ form, set, captureGPS }) {
   
@@ -38,7 +37,7 @@ export default function StepBasicInfo({ form, set, captureGPS }) {
       {form.workCategory && (
         <AlertBanner
           type="info"
-          message={`${CHAPTERS_N?.find((t)=>t.name==form.workCategory)?.items.length} line items available for ${form.workCategory}`}
+          message={`${CHAPTERS_N?.find((t)=>t.name===form.workCategory)?.items.length} line items available for ${form.workCategory}`}
         />
       )}
       <FormField label="Location Description" required>

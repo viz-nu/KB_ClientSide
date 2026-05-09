@@ -1,4 +1,4 @@
-import { CHAPTERS_N, SCHEDULE_N } from '../../../../constants/scheduleN.js';
+import { CHAPTERS_N } from '../../../../constants/scheduleN.js';
 import { StatusBadge } from '../../../../components/common';
 
 export default function EntryTable({ handleAction, filtered, setSelected }){
@@ -30,7 +30,7 @@ export default function EntryTable({ handleAction, filtered, setSelected }){
       </td>
       <td>
         <span style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 5 }}>
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: CHAPTERS_N.find((t)=>t.name==e.workCategory)?.color || '#fff', display: 'inline-block', flexShrink: 0 }} />
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: CHAPTERS_N.find((t)=>t.name===e.workCategory)?.color || '#fff', display: 'inline-block', flexShrink: 0 }} />
           {e.workCategory?.split(' (')[0]}
         </span>
       </td>

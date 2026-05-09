@@ -248,59 +248,7 @@ export const LIST_PROJECTS = gql`
 
 export const SPAN_QUERIES={
   create:gql`mutation createSpan($spanInput: SpanInput!) {
-    createSpan(spanInput: $spanInput) {
-      project {
-        _id
-        name
-        status
-      }
-      name
-      startPoint {
-          placeName
-        pointLocation {
-          type
-          coordinates {
-            lng
-            lat
-          }
-        }
-      }
-      endPoint {
-        placeName
-        pointLocation {
-          type
-          coordinates {
-            lng
-            lat
-          }
-        }
-      }
-      status
-      chapters {
-        _id
-        name
-        code
-        color
-        items {
-          _id
-          label
-          code
-          description
-          measurements
-        }
-      }
-      Vault {
-        allotedBudjet
-        spentBudjet
-      }
-      staff {
-        name
-        role
-        _id
-      }
-      createdAt
-      updatedAt
-    }
+    createSpan(spanInput: $spanInput) 
   }`,
   //remove:gql``,
   get:gql`query getSpans($page: Int, $limit: Int) {
@@ -315,36 +263,15 @@ export const SPAN_QUERIES={
           placeName
           pointLocation {
             type
-            coordinates {
-              lng
-              lat
-            }
+            coordinates
           }
         }
         endPoint {
           placeName
-          pointLocation {
-            type
-            coordinates {
-              lng
-              lat
-            }
-          }
+          pointLocation { type coordinates }
         }
         status
-        chapters {
-          _id
-          name
-          code
-          color
-          items {
-            _id
-            label
-            code
-            description
-            measurements
-          }
-        }
+        chapters { ...ChapterFields }
         Vault {
           allotedBudjet
           spentBudjet
@@ -362,8 +289,12 @@ export const SPAN_QUERIES={
       }
     }
   }
+  ${CHAPTER_FRAGMENT}
       ${PAGINATION_FRAGMENT}
-    `
+    `,
+  update:gql`mutation updateSpan($id: ID!, $spanInput: SpanInput!) {
+    updateSpan(id: $id, spanInput: $spanInput) 
+  }`,
 }
 
 export const GET_PROJECT = gql`

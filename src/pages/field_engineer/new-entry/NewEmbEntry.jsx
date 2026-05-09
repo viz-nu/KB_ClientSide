@@ -5,7 +5,6 @@ import { PageHeader, Spinner } from "../../../components/common/index.jsx";
 import { useEmbForm } from "../../../hooks/useEmbForm.js";
 import StepBasicInfo from "./components/StepBasicInfo.jsx";
 import StepLineItems from "./components/StepLineItems.jsx";
-import StepSEMChecklist from "./components/StepSEMChecklist.jsx";
 import StepPhotosSubmit from "./components/StepPhotosSubmit.jsx";
 import ProjectSpanModal from "./components/ProjectSpanModal.jsx";
 export default function NewEmbEntry() {

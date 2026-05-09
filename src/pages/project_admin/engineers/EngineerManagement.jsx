@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { useAuth } from '../../../hooks/useAuth.js';
-import { LIST_PROJECTS, LIST_USERS, UPDATE_USER } from '../../../apollo/gql.js';
+import { LIST_USERS, UPDATE_USER } from '../../../apollo/gql.js';
 import {
   PageHeader, EmptyState,  Spinner, AlertBanner,
 } from '../../../components/common/index.jsx';

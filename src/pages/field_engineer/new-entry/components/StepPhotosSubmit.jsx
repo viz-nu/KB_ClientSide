@@ -1,5 +1,4 @@
 import CameraCapture from "../../../../components/common/CameraCapture";
-import { useEmbForm } from "../../../../hooks/useEmbForm.js";
 export default function StepPhotosSubmit({ form, set, semParams }) {
 
   return (

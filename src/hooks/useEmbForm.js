@@ -63,7 +63,7 @@ export const useEmbForm = () => {
 
                 // Schedule item selection
                 if (key === 'scheduleItem') {
-                    const item = CHAPTERS_N?.find((t)=>t.name==form.workCategory)?.items.find(
+                    const item = CHAPTERS_N?.find((t)=>t.name===form.workCategory)?.items.find(
                         i => i.label === val
                     );
 

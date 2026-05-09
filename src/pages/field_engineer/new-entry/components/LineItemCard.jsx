@@ -53,7 +53,7 @@ export default function LineItemCard({ form, updateLine, removeLine }) {
                   style={{ flex: 1 }}
                 >
                   <option value="">Select item…</option>
-                  {(CHAPTERS_N?.find((t)=>t.name==form.workCategory)?.items || []).map((item) => (
+                  {(CHAPTERS_N?.find((t)=>t.name===form.workCategory)?.items || []).map((item) => (
                     <option key={item.code} value={item.label}>
                       {item.label}
                     </option>
@@ -62,7 +62,7 @@ export default function LineItemCard({ form, updateLine, removeLine }) {
 
                 {li.scheduleItem &&
                   (() => {
-                    const desc = CHAPTERS_N?.find((t)=>t.name==form.workCategory)?.items.find(
+                    const desc = CHAPTERS_N?.find((t)=>t.name===form.workCategory)?.items.find(
                       (i) => i.label === li.scheduleItem,
                     )?.description;
                     if (!desc) return null;
