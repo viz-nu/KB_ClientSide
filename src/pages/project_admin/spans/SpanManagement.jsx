@@ -291,6 +291,7 @@ function SpanForm({ span: initial, projects, onSave, onCancel }) {
       ch.items.map(item => ({ code: item.code, label: item.label, billingUnit: item.billingUnit, included: true }))
     );
     set("vendorUnits", units);
+    set("chapters",[])
   };
 
   const toggleUnit = (code) => {
@@ -311,6 +312,8 @@ function SpanForm({ span: initial, projects, onSave, onCancel }) {
 
   const STEPS = ["Basic Info", "Route & GPS", "Work Items", "Vault"];
   const project = projects.find(p => p._id === span.projectId);
+
+  console.log("Span Data",span);
 
   return (
     <div className="fade-up">
@@ -363,7 +366,56 @@ function SpanForm({ span: initial, projects, onSave, onCancel }) {
             {project && (
               <AlertBanner type="info" message={`${project.chapters.flatMap(c=>c.items).length} work items will be imported from "${project.name}"`} />
             )}
-            <FormField label="Progress Status">
+            <FormField label="Chapters" required>
+              <div className="form-group">
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {MOCK_PROJECTS.find((t)=>t._id==span.projectId)?.chapters.map((opt) => {
+                    const active = (span.chapters??[]).includes(opt.name);
+                    return (
+                      <button
+                        key={opt.name}
+                        type="button"
+                        onClick={(e) => {
+                          set("chapters", span.chapters?.find((t)=>t==opt.name)?span.chapters.filter((t)=>t!=opt.name):[...span.chapters??[],opt.name]);
+                        }}
+                        style={{
+                          padding: "4px 12px",
+                          borderRadius: 20,
+                          fontSize: 12,
+                          fontWeight: active ? 600 : 400,
+                          cursor: "pointer",
+                          transition: "all .15s",
+                          border: `1px solid ${active ? "var(--accent)" : "var(--border)"}`,
+                          background: active
+                            ? "rgba(244,160,28,.15)"
+                            : "rgba(255,255,255,.03)",
+                          color: active ? "var(--accent)" : "var(--text2)",
+                          fontFamily: "var(--font-body)",
+                        }}
+                      >
+                        {active ? "✓ " : ""}
+                        {opt.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              {/* <select
+                className="form-control"
+                value={span.chapter}
+                onChange={(e) => {
+                  set("chapter", e.target.value);
+                }}
+              >
+                <option value="">Select chapter…</option>
+                {MOCK_PROJECTS.find((t)=>t._id==span.projectId)?.chapters.map((t) => (
+                  <option key={t.name} value={t.name}>
+                    {t.name}
+                  </option>
+                ))}
+              </select> */}
+            </FormField>
+            {/* <FormField label="Progress Status">
               <div style={{ display: "flex", gap: 8 }}>
                 {PROGRESS_STAGES.map(ps => (
                   <button key={ps.value} type="button"
@@ -377,7 +429,7 @@ function SpanForm({ span: initial, projects, onSave, onCancel }) {
                   </button>
                 ))}
               </div>
-            </FormField>
+            </FormField> */}
           </div>
         )}
 
