@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { useAuth } from '../../../hooks/useAuth.js';
-import { LIST_USERS, UPDATE_USER } from '../../../apollo/gql.js';
+import { LIST_PROJECTS, LIST_USERS, UPDATE_USER } from '../../../apollo/gql.js';
 import {
   PageHeader, EmptyState,  Spinner, AlertBanner,
 } from '../../../components/common/index.jsx';
@@ -38,7 +38,7 @@ export default function EngineerManagement() {
     error: usersError,
     refetch: refetchUsers,
   } = useQuery(LIST_USERS, {
-    fetchPolicy: 'network-only',
+    fetchPolicy: "cache-and-network",
     variables: listVariables,
     skip: !hasScope,
   });
@@ -73,6 +73,7 @@ export default function EngineerManagement() {
       },
     });
   };
+
 
   return (
     <div className="fade-up">

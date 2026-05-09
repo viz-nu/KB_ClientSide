@@ -246,6 +246,126 @@ export const LIST_PROJECTS = gql`
   ${PAGINATION_FRAGMENT}
 `;
 
+export const SPAN_QUERIES={
+  create:gql`mutation createSpan($spanInput: SpanInput!) {
+    createSpan(spanInput: $spanInput) {
+      project {
+        _id
+        name
+        status
+      }
+      name
+      startPoint {
+          placeName
+        pointLocation {
+          type
+          coordinates {
+            lng
+            lat
+          }
+        }
+      }
+      endPoint {
+        placeName
+        pointLocation {
+          type
+          coordinates {
+            lng
+            lat
+          }
+        }
+      }
+      status
+      chapters {
+        _id
+        name
+        code
+        color
+        items {
+          _id
+          label
+          code
+          description
+          measurements
+        }
+      }
+      Vault {
+        allotedBudjet
+        spentBudjet
+      }
+      staff {
+        name
+        role
+        _id
+      }
+      createdAt
+      updatedAt
+    }
+  }`,
+  //remove:gql``,
+  get:gql`query getSpans($page: Int, $limit: Int) {
+    spans(page: $page, limit: $limit) {
+      data {
+        project {
+          name
+          status
+        }
+        name
+        startPoint {
+          placeName
+          pointLocation {
+            type
+            coordinates {
+              lng
+              lat
+            }
+          }
+        }
+        endPoint {
+          placeName
+          pointLocation {
+            type
+            coordinates {
+              lng
+              lat
+            }
+          }
+        }
+        status
+        chapters {
+          _id
+          name
+          code
+          color
+          items {
+            _id
+            label
+            code
+            description
+            measurements
+          }
+        }
+        Vault {
+          allotedBudjet
+          spentBudjet
+          logs
+        }
+        staff {
+          _id
+          name
+        }
+        createdAt
+        updatedAt
+      }
+     PaginationMetaData {
+        ...PaginationFields
+      }
+    }
+  }
+      ${PAGINATION_FRAGMENT}
+    `
+}
+
 export const GET_PROJECT = gql`
   query GetProject($id: ID!) {
     project(id: $id) { _id name }

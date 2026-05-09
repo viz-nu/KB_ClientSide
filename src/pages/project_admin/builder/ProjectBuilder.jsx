@@ -144,7 +144,7 @@ export default function ProjectManagement() {
   const [delTarget, setDel]     = useState(null);
 
   const { data, loading, error, refetch } = useQuery(LIST_PROJECTS, {
-    fetchPolicy: 'network-only',
+    fetchPolicy: "cache-and-network",
     variables: { page: 1, limit: 10 },
   });
 

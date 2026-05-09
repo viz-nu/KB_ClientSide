@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useMutation } from '@apollo/client';
+import { useQuery,useMutation } from '@apollo/client';
 import { UPDATE_USER, CREATE_USER } from '../../../apollo/gql.js';
 import { Modal,FormField, Spinner, AlertBanner} from '../../../components/common/index.jsx';
-
+import { LIST_PROJECTS} from '../../../apollo/gql.js';
 
 // ─── Engineer Management ─────────────────────────────────────────
 const ASSIGNABLE_SCOPE_OPTIONS = [
@@ -23,9 +23,14 @@ export default function EngineerUserModal({ editUser, currentUser, onClose, onSa
   const [email, setEmail] = useState(editUser?.email ?? '');
   const [role, setRole] = useState(editUser?.role ?? 'field_engineer');
   const [password, setPassword] = useState('');
+  const { data:projectsData, loading:projectsDataLoading, error:projectsDataError, refetch:projectsDataRefetch } = useQuery(LIST_PROJECTS, {
+    fetchPolicy: "cache-and-network",
+    variables: { page: 1, limit: 10 },
+  });
   const [projectIds, setProjectIds] = useState(() =>
     (!editUser && projectList.length ? projectList.map((p) => p._id) : []),
   );
+
 
   const [scopes, setScopes] = useState(() =>
     (Array.isArray(editUser?.scopes) ? [...editUser.scopes] : []),
@@ -86,6 +91,7 @@ export default function EngineerUserModal({ editUser, currentUser, onClose, onSa
     }
   };
 
+
   return (
     <Modal
       title={isEdit ? `Edit user — ${editUser.name}` : 'Add user'}
@@ -119,6 +125,7 @@ export default function EngineerUserModal({ editUser, currentUser, onClose, onSa
           <select className="form-control" value={role} onChange={(e) => setRole(e.target.value)}>
             <option value="field_engineer">Field engineer</option>
             <option value="project_admin">Project admin</option>
+            <option value="vendor">Vendor</option>
           </select>
         </FormField>
         <FormField label={isEdit ? 'Password (optional)' : 'Password'} required={!isEdit}>
@@ -134,24 +141,58 @@ export default function EngineerUserModal({ editUser, currentUser, onClose, onSa
       </div>
       {!isEdit && projectList.length > 0 && (
         <FormField label="Projects" required>
-          <select
-            className="form-control"
-            multiple
-            size={Math.min(Math.max(projectList.length, 3), 8)}
-            value={projectIds}
-            onChange={(e) => setProjectIds(Array.from(e.target.selectedOptions, (o) => o.value))}
-          >
-            {projectList.map((p) => (
-              <option key={p._id} value={p._id}>{p.name || p._id}</option>
-            ))}
-          </select>
-          <div style={{ fontSize: 11, color: 'var(--text2)', marginTop: 6 }}>Hold Ctrl/Cmd to select multiple. IDs are sent to the API.</div>
+          <div className="form-group">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {projectsData.projects.data?.map((opt) => {
+                const active = (projectIds??[]).includes(opt._id);
+                return (
+                  <button
+                    key={opt._id}
+                    type="button"
+                    onClick={(e) => {
+                      setProjectIds(projectIds?.find((t)=>t==opt._id)?projectIds.filter((t)=>t!=opt._id):[...projectIds??[],opt._id]);
+                    }}
+                    style={{
+                      padding: "4px 12px",
+                      borderRadius: 20,
+                      fontSize: 12,
+                      fontWeight: active ? 600 : 400,
+                      cursor: "pointer",
+                      transition: "all .15s",
+                      border: `1px solid ${active ? "var(--accent)" : "var(--border)"}`,
+                      background: active
+                        ? "rgba(244,160,28,.15)"
+                        : "rgba(255,255,255,.03)",
+                      color: active ? "var(--accent)" : "var(--text2)",
+                      fontFamily: "var(--font-body)",
+                    }}
+                  >
+                    {active ? "✓ " : ""}
+                    {opt.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </FormField>
+        // <FormField label="Projects" required>
+        //   <select
+        //     className="form-control"
+        //     multiple
+        //     size={Math.min(Math.max(projectList.length, 3), 8)}
+        //     value={projectIds}
+        //     onChange={(e) => setProjectIds(Array.from(e.target.selectedOptions, (o) => o.value))}
+        //   >
+        //     {projectsData.projects.data?.map((p) => (
+        //       <option key={p._id} value={p._id}>{p.name}</option>
+        //     ))}
+        //   </select>
+        // </FormField>
       )}
       {!isEdit && !projectList.length && (
         <AlertBanner type="warning" message="Your profile has no projects. Assign projects to your account before creating users with project scope." />
       )}
-      {isEdit && (
+      {/* {isEdit && (
         <FormField label="Scopes">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
             {ASSIGNABLE_SCOPE_OPTIONS.map((s) => (
@@ -162,7 +203,7 @@ export default function EngineerUserModal({ editUser, currentUser, onClose, onSa
             ))}
           </div>
         </FormField>
-      )}
+      )} */}
     </Modal>
   );
 }

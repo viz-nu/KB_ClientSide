@@ -10,6 +10,8 @@ import {
   Spinner,
   Tabs,
 } from "../../../components/common/index.jsx";
+import { LIST_PROJECTS, SPAN_QUERIES, SPAN_QUERY } from "../../../apollo/gql.js";
+import { useMutation, useQuery } from "@apollo/client";
 
 // ─── Mock data ────────────────────────────────────────────────────
 const MOCK_PROJECTS = [
@@ -89,34 +91,79 @@ const emptySpan = () => ({
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════
 export default function SpanManagement() {
-  const [spans, setSpans]     = useState(MOCK_SPANS);
+  const { data, loading, error, refetch } = useQuery(SPAN_QUERIES.get, {
+    fetchPolicy: "cache-and-network",
+    variables: { page: 1, limit: 10 },
+  });
+  const [createSpan,createSpanRequest] = useMutation(SPAN_QUERIES.create);
+  const spans=data?.spans?.data??[];
   const [view, setView]       = useState("list"); // list | form | detail
   const [activeSpan, setActive] = useState(null);
   const [delTarget, setDel]   = useState(null);
-
+  const { data:projectsData, loading:projectsDataLoading, error:projectsDataError, refetch:projectsDataRefetch } = useQuery(LIST_PROJECTS, {
+    fetchPolicy: "cache-and-network",
+    variables: { page: 1, limit: 10 },
+  });
   const openCreate = () => { setActive(emptySpan()); setView("form"); };
   const openEdit   = (s)  => { setActive(JSON.parse(JSON.stringify(s))); setView("form"); };
   const openDetail = (s)  => { setActive(s); setView("detail"); };
 
-  const saveSpan = (span) => {
+  const saveSpan = async (span) => {
     if (span._id) {
-      setSpans(ss => ss.map(s => s._id === span._id ? span : s));
+      //setSpans(ss => ss.map(s => s._id === span._id ? span : s));
     } else {
-      setSpans(ss => [...ss, { ...span, _id: `s${Date.now()}` }]);
+      await createSpan({
+        variables:{
+          spanInput:{
+            "Vault": span.Vault,
+            "chapters": span.chapters.map((({ __typename,_id,items, ...rest1})=>({
+              ...rest1,
+              items: items.map(({ __typename,_id, ...rest2}) => rest2)
+            }))),
+            "endPoint": {
+              "placeName": span.endPoint.placeName,
+              "pointLocation": {
+                type:"point",
+                "coordinates": {
+                  "lat": parseFloat(span.endPoint.gpsLat),
+                  "lng": parseFloat(span.endPoint.gpsLng),
+                }
+              }
+            },
+            "startPoint": {
+              "placeName": span.startPoint.placeName,
+              "pointLocation": {
+                type:"point",
+                "coordinates": {
+                  "lat": parseFloat(span.startPoint.gpsLat),
+                  "lng": parseFloat(span.startPoint.gpsLng),
+                }
+              }
+            },
+            project:span.projectId,
+            name:span.name
+           }
+        },
+        update(cache){
+          cache.evict({ fieldName: "spans" });
+          cache.gc();
+        }
+      });
+      //setSpans(ss => [...ss, { ...span, _id: `s${Date.now()}` }]);
     }
     setView("list");
   };
 
   const deleteSpan = () => {
-    setSpans(ss => ss.filter(s => s._id !== delTarget._id));
+    //setSpans(ss => ss.filter(s => s._id !== delTarget._id));
     setDel(null);
   };
 
   if (view === "form")
-    return <SpanForm span={activeSpan} projects={MOCK_PROJECTS} onSave={saveSpan} onCancel={() => setView("list")} />;
+    return <SpanForm span={activeSpan} projects={projectsData?.projects?.data??[]} onSave={saveSpan} onCancel={() => setView("list")} />;
 
   if (view === "detail")
-    return <SpanDetail span={activeSpan} projects={MOCK_PROJECTS} onBack={() => setView("list")} onEdit={() => openEdit(activeSpan)} />;
+    return <SpanDetail span={activeSpan} projects={projectsData?.projects?.data??[]} onBack={() => setView("list")} onEdit={() => openEdit(activeSpan)} />;
 
   return (
     <div className="fade-up">
@@ -134,7 +181,7 @@ export default function SpanManagement() {
               <SpanCard
                 key={s._id}
                 span={s}
-                project={MOCK_PROJECTS.find(p => p._id === s.projectId)}
+                project={(projectsData?.projects?.data??[]).find(p => p._id === s.projectId)}
                 onView={() => openDetail(s)}
                 onEdit={() => openEdit(s)}
                 onDelete={() => setDel(s)}
@@ -262,6 +309,10 @@ function SpanForm({ span: initial, projects, onSave, onCancel }) {
   const [span, setSpan]       = useState(initial);
   const [step, setStep]       = useState(1);
   const [errors, setErrors]   = useState({});
+  const { data:projectsData, loading:projectsDataLoading, error:projectsDataError, refetch:projectsDataRefetch } = useQuery(LIST_PROJECTS, {
+    fetchPolicy: "cache-and-network",
+    variables: { page: 1, limit: 10 },
+  });
 
   const set = (path, val) => {
     setSpan(s => {
@@ -310,7 +361,7 @@ function SpanForm({ span: initial, projects, onSave, onCancel }) {
 
   const handleSave = () => { if (validate()) onSave(span); };
 
-  const STEPS = ["Basic Info", "Route & GPS", "Work Items", "Vault"];
+  const STEPS = ["Basic Info", "Route & GPS", "Vault"];
   const project = projects.find(p => p._id === span.projectId);
 
   console.log("Span Data",span);
@@ -364,19 +415,19 @@ function SpanForm({ span: initial, projects, onSave, onCancel }) {
               </select>
             </FormField>
             {project && (
-              <AlertBanner type="info" message={`${project.chapters.flatMap(c=>c.items).length} work items will be imported from "${project.name}"`} />
+              <AlertBanner type="info" message={`${project.chapters.map(c=>c.items).length} work items will be imported from "${project.name}"`} />
             )}
             <FormField label="Chapters" required>
               <div className="form-group">
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  {MOCK_PROJECTS.find((t)=>t._id==span.projectId)?.chapters.map((opt) => {
-                    const active = (span.chapters??[]).includes(opt.name);
+                  {(projectsData?.projects?.data??[]).find((t)=>t._id==span.projectId)?.chapters.map((opt) => {
+                    const active = (span.chapters.map((t)=>t._id)??[]).includes(opt._id);
                     return (
                       <button
                         key={opt.name}
                         type="button"
                         onClick={(e) => {
-                          set("chapters", span.chapters?.find((t)=>t==opt.name)?span.chapters.filter((t)=>t!=opt.name):[...span.chapters??[],opt.name]);
+                          set("chapters", span.chapters?.find((t)=>t._id==opt._id)?span.chapters.filter((t)=>t._id!=opt._id):[...span.chapters??[],opt]);
                         }}
                         style={{
                           padding: "4px 12px",
@@ -470,7 +521,7 @@ function SpanForm({ span: initial, projects, onSave, onCancel }) {
         )}
 
         {/* ── Step 3: Work Items (vendor units) */}
-        {step === 3 && (
+        {/* {step === 3 && (
           <div>
             <div style={{ marginBottom: 16 }}>
               <div className="card-title" style={{ marginBottom: 4 }}>Work Items</div>
@@ -518,10 +569,10 @@ function SpanForm({ span: initial, projects, onSave, onCancel }) {
               )
             }
           </div>
-        )}
+        )} */}
 
         {/* ── Step 4: Vault */}
-        {step === 4 && (
+        {step === 3 && (
           <div>
             <div className="card-title" style={{ marginBottom: 16 }}>💰 Budget (Vault)</div>
             <div className="form-row">
@@ -569,7 +620,7 @@ function SpanForm({ span: initial, projects, onSave, onCancel }) {
             {step === 1 ? "Cancel" : "← Back"}
           </button>
           <div style={{ display: "flex", gap: 10 }}>
-            {step < 4
+            {step < 3
               ? <button className="btn btn-primary" onClick={() => setStep(s => s + 1)} disabled={step === 1 && !!errors.name}>Next →</button>
               : <button className="btn btn-primary" onClick={handleSave}>{span._id ? "Save Changes" : "Create Span →"}</button>
             }
