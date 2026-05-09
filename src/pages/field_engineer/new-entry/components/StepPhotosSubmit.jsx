@@ -1,7 +1,7 @@
 import CameraCapture from "../../../../components/common/CameraCapture";
 import { useEmbForm } from "../../../../hooks/useEmbForm.js";
-export default function StepPhotosSubmit() {
-  const { form, set, semParams } = useEmbForm();
+export default function StepPhotosSubmit({ form, set, semParams }) {
+
   return (
     <div>
       <div className="card-title" style={{ marginBottom: 16 }}>

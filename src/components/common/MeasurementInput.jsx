@@ -117,6 +117,8 @@ function TableInput({ dim, value, onChange, depth = 0 }) {
 export default function MeasurementInput({ dim, value, onChange }) {
   const label = `${dim.label}${dim.unit ? ` (${dim.unit})` : ""}`;
 
+  console.log("Dim Itemssss",dim.type,value,onChange);
+
   switch (dim.type) {
     case "boolean": {
       const checked = value === true || value === "true";
@@ -210,11 +212,11 @@ export default function MeasurementInput({ dim, value, onChange }) {
           <input
             className="form-control"
             type="text"
-            value={value ?? ""}
+            value={(dim.fixedText !== undefined ? dim.fixedText : value)}
             onChange={(e) => onChange(e.target.value)}
-            readOnly={dim.fixed !== undefined}
+            readOnly={dim.fixedText !== undefined}
             style={
-              dim.fixed !== undefined
+              dim.fixedText !== undefined
                 ? { opacity: 0.6, cursor: "not-allowed" }
                 : {}
             }
@@ -307,11 +309,11 @@ export default function MeasurementInput({ dim, value, onChange }) {
             type="number"
             min="0"
             step="0.001"
-            value={value ?? (dim.fixed !== undefined ? dim.fixed : "")}
+            value={(dim.fixedNumber !== undefined ? dim.fixedNumber : value)}
             onChange={(e) => onChange(e.target.value)}
-            readOnly={dim.fixed !== undefined}
+            readOnly={dim.fixedNumber !== undefined}
             style={
-              dim.fixed !== undefined
+              dim.fixedNumber !== undefined
                 ? { opacity: 0.6, cursor: "not-allowed" }
                 : {}
             }
@@ -356,6 +358,7 @@ export default function MeasurementInput({ dim, value, onChange }) {
     case "table": {
       return <TableInput dim={dim} value={value} onChange={onChange} />;
     }
+
     default: {
       return (
         <div className="form-group">

@@ -1,9 +1,8 @@
 import MeasurementInput from "../../../../components/common/MeasurementInput";
-import { SCHEDULE_N } from "../../../../constants/scheduleN.js";
+import { CHAPTERS_N } from "../../../../constants/scheduleN.js";
 import { FormField } from "../../../../components/common/index.jsx";
-import { useEmbForm } from '../../../../hooks/useEmbForm.js';
-export default function LineItemCard() {
-  const { form, updateLine, removeLine } = useEmbForm();
+export default function LineItemCard({ form, updateLine, removeLine }) {
+
   return (
     <div>
       {form.lineItems.map((li, idx) => (
@@ -54,7 +53,7 @@ export default function LineItemCard() {
                   style={{ flex: 1 }}
                 >
                   <option value="">Select item…</option>
-                  {(SCHEDULE_N[form.workCategory]?.items || []).map((item) => (
+                  {(CHAPTERS_N?.find((t)=>t.name==form.workCategory)?.items || []).map((item) => (
                     <option key={item.code} value={item.label}>
                       {item.label}
                     </option>
@@ -63,7 +62,7 @@ export default function LineItemCard() {
 
                 {li.scheduleItem &&
                   (() => {
-                    const desc = SCHEDULE_N[form.workCategory]?.items.find(
+                    const desc = CHAPTERS_N?.find((t)=>t.name==form.workCategory)?.items.find(
                       (i) => i.label === li.scheduleItem,
                     )?.description;
                     if (!desc) return null;
@@ -157,6 +156,7 @@ export default function LineItemCard() {
           {/* Dynamic measurement fields */}
           {(() => {
             const dims = li.measurements || [];
+            console.log("Dims",dims);
             if (dims.length === 0) return null;
             const inputDims = dims.filter((d) => d.type !== "boolean");
             const booleanDims = dims.filter((d) => d.type === "boolean");
@@ -215,9 +215,10 @@ export default function LineItemCard() {
                         key={dim.key}
                         dim={dim}
                         value={dim.value}
-                        onChange={(val) =>
+                        onChange={(val) =>{
+                          console.log("Updating Item",li.id, `measurement.${dim.key}`, val);
                           updateLine(li.id, `measurement.${dim.key}`, val)
-                        }
+                        }}
                       />
                     ))}
                   </div>

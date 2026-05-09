@@ -1,12 +1,21 @@
 import { useState } from 'react';
-import { SCHEDULE_N, SEM_PARAMS } from '../constants/scheduleN';
+import { CHAPTERS_N, SEM_PARAMS } from '../constants/scheduleN';
+import { useNavigate } from 'react-router-dom';
 
-export const useEmbForm = ({ navigate }) => {
+export const useEmbForm = () => {
+    const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [saving, setSaving] = useState(false);
     const [showProjectModal, setShowProjectModal] = useState(false);
     const [assignment, setAssignment] = useState(null);
-    const [form, setForm] = useState({ title: '', workCategory: '', locationDescription: '', gpsLat: '', gpsLng: '', lineItems: [], semChecklist: [], photos: [], remarks: '' });
+    const [form, setForm] = useState({ 
+        title: '', 
+        workCategory: '', 
+        locationDescription: '', 
+        gpsLat: '', gpsLng: '', 
+        lineItems: [], 
+        semChecklist: [], 
+        photos: [], remarks: '' });
     // 🔹 generic setter
     const set = (key, value) => { setForm(prev => ({ ...prev, [key]: value })); };
 
@@ -45,6 +54,7 @@ export const useEmbForm = ({ navigate }) => {
     };
 
     const updateLine = (id, key, val) => {
+        console.log("Form Items",form.lineItems,id,key,val);
         set('lineItems',
             form.lineItems.map(li => {
                 if (li.id !== id) return li;
@@ -53,7 +63,7 @@ export const useEmbForm = ({ navigate }) => {
 
                 // Schedule item selection
                 if (key === 'scheduleItem') {
-                    const item = SCHEDULE_N[form.workCategory]?.items.find(
+                    const item = CHAPTERS_N?.find((t)=>t.name==form.workCategory)?.items.find(
                         i => i.label === val
                     );
 

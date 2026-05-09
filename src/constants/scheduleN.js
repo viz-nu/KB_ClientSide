@@ -360,6 +360,227 @@ export const SCHEDULE_N = {
     ],
   },
 };
+export const CHAPTERS_N=[
+  {
+    "name": "chapter 1",
+    "code": "C1",
+    "color": "#3B82F6",
+    "items": [
+      {
+        "label": "item 1",
+        "code": "CI1",
+        "description": "item 1 description",
+        "measurements": [
+          {
+            "key": "k1",
+            "label": "need variable number here",
+            "unit": "some unit",
+            "type": "number",
+            "options": [],
+            "requiresPhoto": true,
+            "_id": {
+              "$oid": "69ff220114a4b44a1f83d168"
+            },
+            "columns": []
+          },
+          {
+            "key": "k2",
+            "label": "constant number here",
+            "unit": "",
+            "type": "number",
+            "options": [],
+            "fixedNumber": 40,
+            "requiresPhoto": false,
+            "_id": {
+              "$oid": "69ff220114a4b44a1f83d169"
+            },
+            "columns": []
+          },
+          {
+            "key": "k3",
+            "label": "text varaible",
+            "unit": "",
+            "type": "text",
+            "options": [],
+            "requiresPhoto": false,
+            "_id": {
+              "$oid": "69ff220114a4b44a1f83d16a"
+            },
+            "columns": []
+          },
+          {
+            "key": "k4",
+            "label": "text constant ",
+            "unit": "",
+            "type": "text",
+            "fixedText":"viss",
+            "options": [],
+            "requiresPhoto": false,
+            "_id": {
+              "$oid": "69ff220114a4b44a1f83d16b"
+            },
+            "columns": []
+          },
+          {
+            "key": "k5",
+            "label": "single select dropdown",
+            "unit": "",
+            "type": "select",
+            "options": [
+              "option 1",
+              "option 2",
+              "option 3"
+            ],
+            "requiresPhoto": false,
+            "_id": {
+              "$oid": "69ff220114a4b44a1f83d16c"
+            },
+            "columns": []
+          },
+          {
+            "key": "k6",
+            "label": "multiselect",
+            "unit": "",
+            "type": "multiselect",
+            "options": [
+              "option 1",
+              "option 2",
+              "option 3",
+              "option 4"
+            ],
+            "requiresPhoto": false,
+            "_id": {
+              "$oid": "69ff220114a4b44a1f83d16d"
+            },
+            "columns": []
+          },
+          {
+            "key": "k7",
+            "label": "boolean",
+            "unit": "",
+            "type": "boolean",
+            "options": [],
+            "requiresPhoto": true,
+            "_id": {
+              "$oid": "69ff220114a4b44a1f83d16e"
+            },
+            "columns": []
+          }
+        ],
+        "_id": {
+          "$oid": "69ff220114a4b44a1f83d167"
+        }
+      }
+    ],
+    "_id": {
+      "$oid": "69ff220114a4b44a1f83d166"
+    }
+  },
+  {
+    "name": "chapter 2 ",
+    "code": "C2",
+    "color": "#22C55E",
+    "items": [
+      {
+        "label": "item 1",
+        "code": "CI21",
+        "description": "",
+        "measurements": [
+          {
+            "key": "k1",
+            "label": "tabular data",
+            "unit": "",
+            "type": "table",
+            "options": [],
+            "requiresPhoto": false,
+            "_id": {
+              "$oid": "69ff220114a4b44a1f83d171"
+            },
+            "columns": [
+              {
+                "key": "column_1_text",
+                "label": "column 1 text",
+                "unit": "",
+                "type": "text",
+                "options": [],
+                "_id": {
+                  "$oid": "69ff220114a4b44a1f83d172"
+                },
+                "columns": []
+              },
+              {
+                "key": "column_2_number",
+                "label": "column 2 number",
+                "unit": "",
+                "type": "number",
+                "options": [],
+                "_id": {
+                  "$oid": "69ff220114a4b44a1f83d173"
+                },
+                "columns": []
+              },
+              {
+                "key": "column_3_options",
+                "label": "column 3 options",
+                "unit": "",
+                "type": "multiselect",
+                "options": [
+                  "optn 1",
+                  "optn 2",
+                  "optn 3"
+                ],
+                "_id": {
+                  "$oid": "69ff220114a4b44a1f83d174"
+                },
+                "columns": []
+              }
+            ]
+          }
+        ],
+        "_id": {
+          "$oid": "69ff220114a4b44a1f83d170"
+        }
+      },
+      {
+        "label": "item 2 ",
+        "code": "CI22",
+        "description": "second item",
+        "measurements": [
+          {
+            "key": "k1",
+            "label": "time goes here",
+            "unit": "",
+            "type": "time",
+            "options": [],
+            "requiresPhoto": true,
+            "_id": {
+              "$oid": "69ff220114a4b44a1f83d176"
+            },
+            "columns": []
+          },
+          {
+            "key": "k2",
+            "label": "unnecessaryphone",
+            "unit": "",
+            "type": "phone",
+            "options": [],
+            "requiresPhoto": false,
+            "_id": {
+              "$oid": "69ff220114a4b44a1f83d177"
+            },
+            "columns": []
+          }
+        ],
+        "_id": {
+          "$oid": "69ff220114a4b44a1f83d175"
+        }
+      }
+    ],
+    "_id": {
+      "$oid": "69ff220114a4b44a1f83d16f"
+    }
+  }
+]
 // ─── SEM Parameters per category ────────────────────────────────
 export const SEM_PARAMS = {
   'Cable Laying (Ch.25)': [

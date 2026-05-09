@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../../hooks/useAuth.js';
-import { MOCK_ENTRIES, SCHEDULE_N } from '../../../constants/scheduleN.js';
+import { MOCK_ENTRIES, CHAPTERS_N } from '../../../constants/scheduleN.js';
 import {  StatCard, PageHeader, FormField, Spinner,} from '../../../components/common/index.jsx';
 
 // ─── Reports ─────────────────────────────────────────────────────
@@ -22,11 +22,11 @@ export default function ReportsDashboard() {
       pending:  entries.filter(e => e.status === 'PENDING').length,
       returned: entries.filter(e => e.status === 'RETURNED').length,
       amount: entries.reduce((s, e) => s + (e.totalAmount || 0), 0),
-      breakdown: Object.entries(SCHEDULE_N).map(([cat, data]) => ({
-        cat: cat.split(' (')[0],
-        count: entries.filter(e => e.workCategory === cat).length,
-        amount: entries.filter(e => e.workCategory === cat).reduce((s, e) => s + (e.totalAmount || 0), 0),
-        color: data.color,
+      breakdown: CHAPTERS_N.map((t) => ({
+        cat: t.name.split(' (')[0],
+        count: entries.filter(e => e.workCategory === t.name).length,
+        amount: entries.filter(e => e.workCategory === t.name).reduce((s, e) => s + (e.totalAmount || 0), 0),
+        color: t.color,
       })).filter(b => b.count > 0),
     });
     setLoading(false);

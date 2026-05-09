@@ -1,8 +1,8 @@
 import { EmptyState } from "../../../../components/common/index.jsx";
 import LineItemCard from "../components/LineItemCard.jsx";
 import { useEmbForm } from '../../../../hooks/useEmbForm.js';
-export default function StepLineItems() {
-  const { form, addLine } = useEmbForm();
+export default function StepLineItems({ form, addLine,removeLine,updateLine }) {
+
   return (
     <div>
       <div
@@ -31,7 +31,7 @@ export default function StepLineItems() {
           }
         />
       )}
-      <LineItemCard/>
+      <LineItemCard form={form} updateLine={updateLine} removeLine={removeLine}/>
     </div>
   );
 }

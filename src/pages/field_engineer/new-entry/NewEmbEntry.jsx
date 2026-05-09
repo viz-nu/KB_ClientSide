@@ -9,10 +9,11 @@ import StepSEMChecklist from "./components/StepSEMChecklist.jsx";
 import StepPhotosSubmit from "./components/StepPhotosSubmit.jsx";
 import ProjectSpanModal from "./components/ProjectSpanModal.jsx";
 export default function NewEmbEntry() {
+
   const navigate = useNavigate();
-  const { form, handleSubmit, confirmAssignment, saving, setStep, step } =
-    useEmbForm({ navigate });
+  const { form, handleSubmit, confirmAssignment, saving,set, setStep, step,captureGPS,addLine,removeLine,updateLine,semParams } =useEmbForm();
   const { user } = useAuth();
+
   // add to state declarations (after saving):
   const [showProjectModal, setShowProjectModal] = useState(false);
   // const [assignment, setAssignment] = useState(null); // { projectId, projectName, spanId, spanName }
@@ -21,9 +22,11 @@ export default function NewEmbEntry() {
   const STEPS = [
     "Basic Info",
     "Line Items",
-    "SEM Checklist",
+    //"SEM Checklist",
     "Photos & Submit",
   ];
+
+  console.log("Form Details",form);
 
   return (
     <div className="fade-up">
@@ -75,16 +78,16 @@ export default function NewEmbEntry() {
           ))}
         </div>
 
-        {step === 1 && <StepBasicInfo />}
+        {step === 1 && <StepBasicInfo  form={form} set={set} captureGPS={captureGPS} />}
 
         {/* ── Step 2: Line Items */}
-        {step === 2 && <StepLineItems />}
+        {step === 2 && <StepLineItems  form={form} addLine={addLine} updateLine={updateLine} removeLine={removeLine}/>}
 
         {/* ── Step 3: SEM Checklist */}
-        {step === 3 && <StepSEMChecklist />}
+        {/* {step === 3 && <StepSEMChecklist />} */}
 
         {/* ── Step 4: Photos & Submit */}
-        {step === 4 && <StepPhotosSubmit />}
+        {step === 3 && <StepPhotosSubmit form={form} set={set} semParams={semParams}/>}
 
         {/* Navigation */}
         <div
@@ -105,16 +108,16 @@ export default function NewEmbEntry() {
             {step === 1 ? "Cancel" : "← Back"}
           </button>
           <div style={{ display: "flex", gap: 10 }}>
-            {step < 4 && (
+            {step < 3 && (
               <button
                 className="btn btn-primary"
                 onClick={() => setStep((s) => s + 1)}
-                disabled={step === 1 && (!form.title || !form.workCategory)}
+                disabled={step === 1 && (!form.workCategory)}
               >
                 Next →
               </button>
             )}
-            {step === 4 && (
+            {step === 3 && (
               <>
                 <button
                   className="btn btn-outline"

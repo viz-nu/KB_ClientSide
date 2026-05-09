@@ -1,5 +1,5 @@
 import { useAuth } from '../../../hooks/useAuth.js';
-import { MOCK_ENTRIES, SCHEDULE_N } from '../../../constants/scheduleN.js';
+import { MOCK_ENTRIES, CHAPTERS_N } from '../../../constants/scheduleN.js';
 import {StatCard, PageHeader, EmptyState, StatusBadge, } from '../../../components/common/index.jsx';
 
 // ─── PA Overview ────────────────────────────────────────────────
@@ -45,7 +45,7 @@ export default function PAOverview() {
         </div>
         <div className="card">
           <div className="card-header"><span className="card-title">Category Breakdown</span></div>
-          {Object.keys(SCHEDULE_N).map(cat => {
+          {Object.keys(CHAPTERS_N).map(cat => {
             const cnt = entries.filter(e => e.workCategory === cat).length;
             const pct = entries.length ? Math.round((cnt / entries.length) * 100) : 0;
             return cnt > 0 ? (
@@ -55,7 +55,7 @@ export default function PAOverview() {
                   <span>{cnt} entries</span>
                 </div>
                 <div style={{ height: 5, background: 'rgba(255,255,255,.07)', borderRadius: 3, overflow: 'hidden' }}>
-                  <div style={{ width: `${pct}%`, height: '100%', background: SCHEDULE_N[cat].color, borderRadius: 3, transition: 'width .4s' }} />
+                  <div style={{ width: `${pct}%`, height: '100%', background: CHAPTERS_N[cat].color, borderRadius: 3, transition: 'width .4s' }} />
                 </div>
               </div>
             ) : null;
