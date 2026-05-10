@@ -89,7 +89,7 @@ export default function EmbEntryDetailModal({ entry, onClose, isAdmin, onAction 
           </div>
         </div>
       )}
-
+{/* 
       {tab === 'sem' && (
         <div>
           {entry.semChecklist?.length > 0
@@ -106,7 +106,7 @@ export default function EmbEntryDetailModal({ entry, onClose, isAdmin, onAction 
             ))
             : <EmptyState icon="☑️" title="No SEM data" message="No SEM checklist was submitted with this entry." />}
         </div>
-      )}
+      )} */}
 
       {tab === 'photos' && (
         <div>

@@ -14,7 +14,7 @@ import {
 } from "./projectTemplates.js";
 import MeasurementFieldEditor from "./MeasurementFieldEditor";
 import { useMutation } from "@apollo/client";
-import { CREATE_PROJECT, UPDATE_PROJECT } from "../../../apollo/gql.js";
+import { PROJECT_QUERIES } from "../../../apollo/gql.js";
 
 export default function ProjectBuilderForm({
   project: initial,
@@ -66,8 +66,8 @@ export default function ProjectBuilderForm({
     return changed;
   };
 
-  const [createProject] = useMutation(CREATE_PROJECT);
-  const [updateProject] = useMutation(UPDATE_PROJECT);
+  const [createProject] = useMutation(PROJECT_QUERIES.create);
+  const [updateProject] = useMutation(PROJECT_QUERIES.update);
   const [saving, setSaving] = useState(false);
   const [apiError, setApiError] = useState("");
 

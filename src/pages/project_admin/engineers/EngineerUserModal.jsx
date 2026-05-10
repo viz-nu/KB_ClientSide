@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
-import { UPDATE_USER, CREATE_USER } from "../../../apollo/gql.js";
+import { USER_QUERIES,PROJECT_QUERIES } from "../../../apollo/gql.js";
 import {
   Modal,
   FormField,
   Spinner,
   AlertBanner,
 } from "../../../components/common/index.jsx";
-import { LIST_PROJECTS } from "../../../apollo/gql.js";
 
 // ─── Engineer Management ─────────────────────────────────────────
 
@@ -30,7 +29,7 @@ export default function EngineerUserModal({
     loading: projectsDataLoading,
     // error: projectsDataError,
     // refetch: projectsDataRefetch,
-  } = useQuery(LIST_PROJECTS, {
+  } = useQuery(PROJECT_QUERIES.list, {
     fetchPolicy: "cache-and-network",
     variables: { page: 1, limit: 10 },
   });
@@ -43,8 +42,8 @@ export default function EngineerUserModal({
   // );
   const [formError, setFormError] = useState("");
 
-  const [createUser, { loading: creating }] = useMutation(CREATE_USER);
-  const [updateUserRecord, { loading: updating }] = useMutation(UPDATE_USER);
+  const [createUser, { loading: creating }] = useMutation(USER_QUERIES.create);
+  const [updateUserRecord, { loading: updating }] = useMutation(USER_QUERIES.update);
 
   const saving = creating || updating;
 
@@ -211,7 +210,7 @@ export default function EngineerUserModal({
           <div className="form-group">
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {projectsDataLoading && <Spinner size={14} color="var(--navy)" />}
-              {projectsData.projects.data?.map((opt) => {
+              {projectsData?.projects?.data?.map((opt) => {
                 const active = (projectIds ?? []).includes(opt._id);
                 return (
                   <button

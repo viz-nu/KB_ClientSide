@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CHAPTERS_N, SEM_PARAMS } from '../constants/scheduleN';
+import { CHAPTERS_N } from '../constants/scheduleN';
 import { useNavigate } from 'react-router-dom';
 
 export const useEmbForm = () => {
@@ -14,7 +14,6 @@ export const useEmbForm = () => {
         locationDescription: '', 
         gpsLat: '', gpsLng: '', 
         lineItems: [], 
-        semChecklist: [], 
         photos: [], remarks: '' });
     // 🔹 generic setter
     const set = (key, value) => { setForm(prev => ({ ...prev, [key]: value })); };
@@ -104,28 +103,28 @@ export const useEmbForm = () => {
     // ─────────────────────────────
     // ☑️ SEM CHECKLIST
     // ─────────────────────────────
-    const semParams = SEM_PARAMS[form.workCategory] || [];
+    // const semParams = SEM_PARAMS[form.workCategory] || [];
 
-    const toggleSem = (id) => {
-        const exists = form.semChecklist.find(c => c.parameterId === id);
+    // const toggleSem = (id) => {
+    //     const exists = form.semChecklist.find(c => c.parameterId === id);
 
-        if (exists) {
-            set('semChecklist',
-                form.semChecklist.map(c =>
-                    c.parameterId === id ? { ...c, passed: !c.passed } : c
-                )
-            );
-        } else {
-            set('semChecklist', [
-                ...form.semChecklist,
-                { parameterId: id, passed: true },
-            ]);
-        }
-    };
+    //     if (exists) {
+    //         set('semChecklist',
+    //             form.semChecklist.map(c =>
+    //                 c.parameterId === id ? { ...c, passed: !c.passed } : c
+    //             )
+    //         );
+    //     } else {
+    //         set('semChecklist', [
+    //             ...form.semChecklist,
+    //             { parameterId: id, passed: true },
+    //         ]);
+    //     }
+    // };
 
-    const isSemPassed = (id) => {
-        return form.semChecklist.find(c => c.parameterId === id)?.passed || false;
-    };
+    // const isSemPassed = (id) => {
+    //     return form.semChecklist.find(c => c.parameterId === id)?.passed || false;
+    // };
 
     // ─────────────────────────────
     // 🚀 SUBMIT
@@ -155,10 +154,10 @@ export const useEmbForm = () => {
                     },
                 },
             })),
-            semChecklist: semParams.map(p => ({
-                parameterId: p.id,
-                passed: isSemPassed(p.id),
-            })),
+            // semChecklist: semParams.map(p => ({
+            //     parameterId: p.id,
+            //     passed: isSemPassed(p.id),
+            // })),
             measurements: form.lineItems,
         };
 
@@ -192,7 +191,6 @@ export const useEmbForm = () => {
         setStep,
         saving,
         form,
-        semParams,
         // modal
         showProjectModal,
         setShowProjectModal,
@@ -204,8 +202,6 @@ export const useEmbForm = () => {
         addLine,
         removeLine,
         updateLine,
-        toggleSem,
-        isSemPassed,
         handleSubmit,
     };
 };

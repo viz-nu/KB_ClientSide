@@ -46,7 +46,6 @@ export const EMB_ENTRY_FRAGMENT = gql`
     span  { _id name }
     lineItems { ...LineItemFields }
     photos    { ...PhotoFields }
-    semChecklist { parameterId label value passed }
     auditLog { action user timestamp note }
   }
   ${LINE_ITEM_FRAGMENT}
@@ -132,7 +131,8 @@ export const ME = gql`
 // ─────────────────────────────────────────────
 // USERS  (system_admin)
 // ─────────────────────────────────────────────
-export const LIST_USERS = gql`
+export const USER_QUERIES={
+  list:gql`
   query ListUsers(
     $page: Int
     $limit: Int
@@ -159,38 +159,29 @@ export const LIST_USERS = gql`
   }
   ${USER_FRAGMENT}
   ${PAGINATION_FRAGMENT}
-`;
-
-export const GET_USER = gql`
+`,
+get:gql`
   query GetUser($id: ID!) {
     user(id: $id) { ...UserFields }
   }
   ${USER_FRAGMENT}
-`;
-
-export const CREATE_USER = gql`
+`,
+create:gql`
   mutation CreateUser($userInput: UserInput!) {
     createUser(userInput: $userInput) { ...UserFields }
   }
   ${USER_FRAGMENT}
-`;
-
-export const UPDATE_USER = gql`
-  mutation UpdateUser($id: ID!, $input: UpdateUserInput!) {
-    updateUser(id: $id, input: $input) { ...UserFields }
+`,
+update:gql`
+  mutation UpdateUser($id: ID!, $userInput: UserInput) {
+    updateUser(_id: $id, userInput: $userInput) { _id }
   }
-  ${USER_FRAGMENT}
-`;
-
-export const DELETE_USER = gql`
+`,
+delete:gql`
   mutation DeleteUser($id: ID!) { deleteUser(id: $id) }
-`;
+`,
+}
 
-export const RESET_PASSWORD = gql`
-  mutation ResetPassword($userId: ID!, $newPassword: String!) {
-    resetPassword(userId: $userId, newPassword: $newPassword)
-  }
-`;
 
 export const SYSTEM_HEALTH = gql`
   query SystemHealth {
@@ -227,13 +218,14 @@ export const REMOVE_ENGINEER = gql`
 // Project Management
 // ─────────────────────────────────────────────
 
-export const CREATE_PROJECT = gql`
-  mutation CreateProject($projectInput: ProjectInput!) {
+export const PROJECT_QUERIES={
+  create:gql`  mutation CreateProject($projectInput: ProjectInput!) {
     createProject(projectInput: $projectInput) { _id name }
-  }
-`;
-
-export const LIST_PROJECTS = gql`
+  }`,
+  update:gql`mutation UpdateProject($id: ID!, $projectInput: ProjectInput!) {
+    updateProject(_id: $id, projectInput: $projectInput) { _id name }
+  }`,
+  list:gql`
   query ListProjects($page: Int, $limit: Int) {
     projects(page: $page, limit: $limit) {
       data { ...ProjectFields }
@@ -244,7 +236,14 @@ export const LIST_PROJECTS = gql`
   }
   ${PROJECT_FRAGMENT}
   ${PAGINATION_FRAGMENT}
-`;
+`,
+get:gql`
+  query GetProject($id: ID!) {
+    project(id: $id) { ...ProjectFields }
+  }
+  ${PROJECT_FRAGMENT}
+`,
+}
 
 export const SPAN_QUERIES={
   create:gql`mutation createSpan($spanInput: SpanInput!) {
@@ -304,17 +303,8 @@ export const SPAN_QUERIES={
   }`,
 }
 
-export const GET_PROJECT = gql`
-  query GetProject($id: ID!) {
-    project(id: $id) { _id name }
-  }
-`;
 
-export const UPDATE_PROJECT = gql`
-  mutation UpdateProject($_id: ID!, $projectInput: ProjectInput!) {
-    updateProject(_id: $_id, projectInput: $projectInput) { _id name }
-  }
-`;
+
 
 
 // ─────────────────────────────────────────────

@@ -9,9 +9,9 @@ import {
   Spinner,
 } from "../../../components/common/index.jsx";
 import {
-  LIST_PROJECTS,
-  LIST_USERS,
+  PROJECT_QUERIES,
   SPAN_QUERIES,
+  USER_QUERIES,
 } from "../../../apollo/gql.js";
 import { useMutation, useQuery } from "@apollo/client";
 
@@ -44,8 +44,8 @@ const emptySpan = () => ({
 export default function SpanManagement() {
   const {
     data: spansData,
-    loading: spansLoading,
-    error: spansError,
+    // loading: spansLoading,
+    // error: spansError,
     refetch: spansRefetch,
   } = useQuery(SPAN_QUERIES.get, {
     fetchPolicy: "cache-and-network",
@@ -59,10 +59,10 @@ export default function SpanManagement() {
   const [delTarget, setDel] = useState(null);
   const {
     data: projectsData,
-    loading: projectsDataLoading,
-    error: projectsDataError,
-    refetch: projectsDataRefetch,
-  } = useQuery(LIST_PROJECTS, {
+    // loading: projectsDataLoading,
+    // error: projectsDataError,
+    // refetch: projectsDataRefetch,
+  } = useQuery(PROJECT_QUERIES.list, {
     fetchPolicy: "cache-and-network",
     variables: { page: 1, limit: 10 },
   });
@@ -568,10 +568,10 @@ function SpanForm({ span: initial, projects, onSave, onCancel }) {
   const [errors, setErrors] = useState({});
   const {
     data: projectsData,
-    loading: projectsDataLoading,
-    error: projectsDataError,
-    refetch: projectsDataRefetch,
-  } = useQuery(LIST_PROJECTS, {
+    // loading: projectsDataLoading,
+    // error: projectsDataError,
+    // refetch: projectsDataRefetch,
+  } = useQuery(PROJECT_QUERIES.list, {
     fetchPolicy: "cache-and-network",
     variables: { page: 1, limit: 10 },
   });
@@ -617,15 +617,6 @@ function SpanForm({ span: initial, projects, onSave, onCancel }) {
   const handleProjectChange = (projId) => {
     set("projectId", projId);
     set("chapters", []);
-  };
-
-  const toggleUnit = (code) => {
-    set(
-      "vendorUnits",
-      span.vendorUnits.map((u) =>
-        u.code === code ? { ...u, included: !u.included } : u,
-      ),
-    );
   };
 
   const validate = () => {
@@ -1675,7 +1666,7 @@ function StaffPanel({ spanId, existingStaff }) {
   const [search, setSearch] = useState("");
   const [apiError, setApiError] = useState("");
 
-  const { data: usersData, loading: usersLoading } = useQuery(LIST_USERS, {
+  const { data: usersData, loading: usersLoading } = useQuery(USER_QUERIES.list, {
     fetchPolicy: "cache-and-network",
     variables: { page: 1, limit: 50 },
   });

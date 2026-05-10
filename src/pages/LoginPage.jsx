@@ -123,9 +123,10 @@ export default function LoginPage() {
             Demo Accounts
           </div>
           {[
-            { u: 'system@admin.com',p: 'systemadmin@123',    r: 'System Admin',   icon: '🔴' },
+            // { u: 'system@admin.com',p: 'systemadmin@123',    r: 'System Admin',   icon: '🔴' },
             { u: 'project@admin.com',p: 'password',   r: 'Project Admin',  icon: '🟡' },
-            { u: 'engineer@engineer.com',p: 'password', r: 'Field Engineer', icon: '🟢' },
+            { u: 'vendor@admin.com',p: 'password',   r: 'Vendor',  icon: '🔴'  },
+            { u: 'engineer@admin.com',p: 'password', r: 'Field Engineer', icon: '🟢' },
           ].map(({ u, p, r, icon }) => (
             <button
               key={u}

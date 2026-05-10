@@ -666,7 +666,7 @@ export const MOCK_ENTRIES = [
     span: { id: 's1', name: 'South Central Span' },
     gpsLat: 17.4326, gpsLng: 78.5013,
     locationDescription: 'Secunderabad Outer Yard, Km 12.4 to 14.9 Up Line',
-    photos: [], semChecklist: [], adminRemark: '', returnReason: '',
+    photos: [],  adminRemark: '', returnReason: '',
     lineItems: [
       { id: 'li1', itemCode: 'CL-TR12', description: 'Trench 1200mm', quantity: 2.5, unit: 'RKM', ratePerUnit: 45000, amount: 112500 },
       { id: 'li2', itemCode: 'CL-LAY', description: 'Cable Laying', quantity: 2.5, unit: 'RKM', ratePerUnit: 30000, amount: 75000 },
@@ -683,7 +683,7 @@ export const MOCK_ENTRIES = [
     span: { id: 's1', name: 'South Central Span' },
     gpsLat: 17.3850, gpsLng: 78.4867,
     locationDescription: 'HYB Platform 3, near Km 0.2',
-    photos: [], semChecklist: [], adminRemark: 'Good work, all parameters verified.', returnReason: '',
+    photos: [], adminRemark: 'Good work, all parameters verified.', returnReason: '',
     lineItems: [
       { id: 'li4', itemCode: 'LB-FDF', description: 'Foundation (Full)', quantity: 4, unit: 'No.', ratePerUnit: 8500, amount: 34000 },
       { id: 'li5', itemCode: 'LB-CETH', description: 'Conv. Earthing', quantity: 2, unit: 'No.', ratePerUnit: 3200, amount: 6400 },
@@ -702,7 +702,7 @@ export const MOCK_ENTRIES = [
     span: { id: 's1', name: 'South Central Span' },
     gpsLat: 17.3913, gpsLng: 78.4970,
     locationDescription: 'Kachiguda Relay Room, Cabin A',
-    photos: [], semChecklist: [], adminRemark: 'Photographs not GPS-tagged. Wiring schedule mismatch at rack R-3. Resubmit.', returnReason: '',
+    photos: [], adminRemark: 'Photographs not GPS-tagged. Wiring schedule mismatch at rack R-3. Resubmit.', returnReason: '',
     lineItems: [
       { id: 'li6', itemCode: 'IW-RLYW', description: 'Relay Room Wiring', quantity: 1, unit: 'No.', ratePerUnit: 25000, amount: 25000 },
     ],

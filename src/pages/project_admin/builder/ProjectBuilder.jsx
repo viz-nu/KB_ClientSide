@@ -10,7 +10,7 @@ import {
   AlertBanner,
 } from "../../../components/common";
 import { useQuery } from "@apollo/client";
-import { LIST_PROJECTS } from "../../../apollo/gql.js";
+import { PROJECT_QUERIES } from "../../../apollo/gql.js";
 
 function ProjectCard({ project: p, onEdit, onPreview, onDelete }) {
   const itemCount = p.chapters.reduce((s, ch) => s + ch.items.length, 0);
@@ -143,7 +143,7 @@ export default function ProjectManagement() {
   const [active, setActive]     = useState(null);
   const [delTarget, setDel]     = useState(null);
 
-  const { data, loading, error, refetch } = useQuery(LIST_PROJECTS, {
+  const { data, loading, error, refetch } = useQuery(PROJECT_QUERIES.list, {
     fetchPolicy: "cache-and-network",
     variables: { page: 1, limit: 10 },
   });

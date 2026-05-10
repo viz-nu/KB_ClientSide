@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@apollo/client';
-import { LIST_USERS } from '../../apollo/gql';
+import { USER_QUERIES } from '../../apollo/gql';
 import { MOCK_ENTRIES } from '../../constants/scheduleN';
 import {
   StatCard, HealthBar, PageHeader, EmptyState,
@@ -99,7 +99,7 @@ function userInitials(name) {
 }
 
 export function UserManagement() {
-  const { data, loading, error, refetch } = useQuery(LIST_USERS, {
+  const { data, loading, error, refetch } = useQuery(USER_QUERIES.list, {
     fetchPolicy: 'network-only',
     variables: { page: 1, limit: 10 },
   });

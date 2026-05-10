@@ -1,5 +1,5 @@
 import CameraCapture from "../../../../components/common/CameraCapture";
-export default function StepPhotosSubmit({ form, set, semParams }) {
+export default function StepPhotosSubmit({ form, set }) {
 
   return (
     <div>
@@ -43,10 +43,6 @@ export default function StepPhotosSubmit({ form, set, semParams }) {
               form.gpsLat ? `${form.gpsLat}, ${form.gpsLng}` : "Not captured",
             ],
             ["Line Items", form.lineItems.length],
-            [
-              "SEM Params",
-              `${form.semChecklist.filter((c) => c.passed).length} / ${semParams.length} verified`,
-            ],
             ["Photos", form.photos.length],
           ].map(([k, v]) => (
             <div

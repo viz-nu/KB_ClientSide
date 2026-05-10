@@ -10,7 +10,7 @@ import ProjectSpanModal from "./components/ProjectSpanModal.jsx";
 export default function NewEmbEntry() {
 
   const navigate = useNavigate();
-  const { form, handleSubmit, confirmAssignment, saving,set, setStep, step,captureGPS,addLine,removeLine,updateLine,semParams } =useEmbForm();
+  const { form, handleSubmit, confirmAssignment, saving,set, setStep, step,captureGPS,addLine,removeLine,updateLine } =useEmbForm();
   const { user } = useAuth();
 
   // add to state declarations (after saving):
@@ -86,7 +86,7 @@ export default function NewEmbEntry() {
         {/* {step === 3 && <StepSEMChecklist />} */}
 
         {/* ── Step 4: Photos & Submit */}
-        {step === 3 && <StepPhotosSubmit form={form} set={set} semParams={semParams}/>}
+        {step === 3 && <StepPhotosSubmit form={form} set={set}/>}
 
         {/* Navigation */}
         <div

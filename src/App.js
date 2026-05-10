@@ -22,7 +22,7 @@ import EngineerManagement from './pages/project_admin/engineers/EngineerManageme
 
 import FEDashboard from './pages/field_engineer/dashboard/FEDashboard.jsx';
 import MyEntries from './pages/field_engineer/entries/MyEntries.jsx';
-import SEMChecklist from './pages/field_engineer/checklist/SEMChecklist.jsx';
+
 import NewEmbEntry from './pages/field_engineer/new-entry/NewEmbEntry.jsx';
 import ProjectManagement from './pages/project_admin/builder/ProjectBuilder.jsx';
 
@@ -69,7 +69,6 @@ function AppRoutes() {
       <Route path="/dashboard"  element={<FEDashboard />} />
       <Route path="/my-entries" element={<MyEntries />} />
       <Route path="/new-entry"  element={<NewEmbEntry />} />
-      <Route path="/checklist"  element={<SEMChecklist />} />
       <Route path="*"           element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );

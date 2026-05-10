@@ -23,7 +23,6 @@ export default function StepBasicInfo({ form, set, captureGPS }) {
           onChange={(e) => {
             set("workCategory", e.target.value);
             set("lineItems", []);
-            set("semChecklist", []);
           }}
         >
           <option value="">Select category…</option>

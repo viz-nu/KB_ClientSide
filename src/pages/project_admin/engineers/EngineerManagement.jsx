@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
 import { useAuth } from '../../../hooks/useAuth.js';
-import { LIST_USERS, UPDATE_USER } from '../../../apollo/gql.js';
+import { USER_QUERIES } from '../../../apollo/gql.js';
 import {
   PageHeader, EmptyState,  Spinner, AlertBanner,
 } from '../../../components/common/index.jsx';
@@ -37,13 +37,13 @@ export default function EngineerManagement() {
     loading: usersLoading,
     error: usersError,
     refetch: refetchUsers,
-  } = useQuery(LIST_USERS, {
+  } = useQuery(USER_QUERIES.list, {
     fetchPolicy: "cache-and-network",
     variables: listVariables,
     skip: !hasScope,
   });
 
-  const [updateUser, { loading: toggling }] = useMutation(UPDATE_USER, {
+  const [updateUser, { loading: toggling }] = useMutation(USER_QUERIES.update, {
     onCompleted: () => void refetchUsers(),
   });
 
