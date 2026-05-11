@@ -247,7 +247,7 @@ get:gql`
 
 export const SPAN_QUERIES={
   create:gql`mutation createSpan($spanInput: SpanInput!) {
-    createSpan(spanInput: $spanInput) 
+    createSpan(spanInput: $spanInput) {_id}
   }`,
   //remove:gql``,
   list:gql`query getSpans($page: Int, $limit: Int) {

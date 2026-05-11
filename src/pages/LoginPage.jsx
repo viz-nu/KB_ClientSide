@@ -58,18 +58,32 @@ export default function LoginPage() {
         backdropFilter: 'blur(20px)',
         boxShadow: '0 24px 80px rgba(0,0,0,.5)',
       }}>
-        {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 36 }}>
-          <div style={{ fontSize: 44, marginBottom: 14 }}>🚂</div>
-          <h1 style={{ fontFamily: 'var(--font-head)', fontSize: 26, fontWeight: 800, color: 'var(--accent)' }}>
-            e-MB Portal
-          </h1>
-          <p style={{ fontSize: 12, color: 'var(--text2)', marginTop: 5, letterSpacing: '.05em' }}>
-            Electronic Measurement Book · Railway Signalling
-          </p>
-          <div style={{ width: 48, height: 2, background: 'var(--accent)', borderRadius: 2, margin: '14px auto 0' }} />
-        </div>
-
+{/* Logo */}
+<div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 36 }}>
+  <svg viewBox="0 0 100 110" width="52" height="52" xmlns="http://www.w3.org/2000/svg">
+    <line x1="50" y1="48" x2="22" y2="100" stroke="#4A6080" strokeWidth="2.5"/>
+    <line x1="50" y1="48" x2="78" y2="100" stroke="#4A6080" strokeWidth="2.5"/>
+    <line x1="36" y1="74" x2="64" y2="74" stroke="#4A6080" strokeWidth="1.8"/>
+    <line x1="28" y1="88" x2="72" y2="88" stroke="#4A6080" strokeWidth="1.8"/>
+    <line x1="50" y1="48" x2="50" y2="8" stroke="#E8EEF7" strokeWidth="2.5"/>
+    <line x1="40" y1="24" x2="60" y2="24" stroke="#E8EEF7" strokeWidth="2"/>
+    <line x1="43" y1="16" x2="57" y2="16" stroke="#E8EEF7" strokeWidth="2"/>
+    <circle cx="50" cy="7" r="4" fill="#F4A01C"/>
+    <path d="M 30 30 A 24 24 0 0 1 70 30" stroke="#F4A01C" strokeWidth="2.2" fill="none" opacity="0.9"/>
+    <path d="M 18 20 A 38 38 0 0 1 82 20" stroke="#F4A01C" strokeWidth="1.5" fill="none" opacity="0.5"/>
+    <path d="M 6 10 A 52 52 0 0 1 94 10" stroke="#F4A01C" strokeWidth="1" fill="none" opacity="0.25"/>
+    <rect x="44" y="100" width="12" height="8" rx="2" fill="#4A6080"/>
+    <rect x="30" y="107" width="40" height="4" rx="2" fill="#4A6080"/>
+  </svg>
+  <div>
+    <div style={{ fontFamily: 'var(--font-head)', fontSize: 22, fontWeight: 800, color: 'var(--accent)', letterSpacing: '.04em', lineHeight: 1 }}>
+      S&amp;TWMB
+    </div>
+    <div style={{ fontSize: 10, color: 'var(--text2)', marginTop: 5, letterSpacing: '.08em', textTransform: 'uppercase', lineHeight: 1.5 }}>
+      Signaling &amp; Telecom<br />Works Measurement Book
+    </div>
+  </div>
+</div>
         {/* Error */}
         {error && (
           <div style={{

@@ -44,7 +44,7 @@ const emptySpan = () => ({
 export default function SpanManagement() {
   const {
     data: spansData,
-    // loading: spansLoading,
+    loading: spansLoading,
     // error: spansError,
     refetch: spansRefetch,
   } = useQuery(SPAN_QUERIES.list, {
@@ -184,7 +184,11 @@ export default function SpanManagement() {
         }
       />
 
-      {spans.length === 0 ? (
+      {spansLoading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 48 }}>
+          <Spinner size={32} />
+        </div>
+      ) : spans.length === 0 ? (
         <EmptyState
           icon="🛤️"
           title="No spans yet"
@@ -247,7 +251,6 @@ function SpanCard({ span: s, project, onView, onEdit, onDelete }) {
       : spentPct > 60
         ? "var(--yellow)"
         : "var(--green)";
-  const includedUnits = (s.vendorUnits || []).filter((v) => v.included).length;
 
   return (
     <div
@@ -520,8 +523,7 @@ function SpanCard({ span: s, project, onView, onEdit, onDelete }) {
         }}
       >
         {[
-          ["📦", includedUnits, "Work Items"],
-          ["📋", s.vendorUnits?.length || 0, "Total Units"],
+          ["📋", s.chapters?.length || 0, "Total Units"],
           ["📅", s.createdAt, "Created"],
         ].map(([icon, val, lbl]) => (
           <div key={lbl} style={{ textAlign: "center" }}>
@@ -1148,8 +1150,6 @@ function SpanDetail({ span: s, projects, onBack, onEdit }) {
   const project = projects.find((p) => p._id === s.projectId);
   const stage =
     PROGRESS_STAGES.find((p) => p.value === s.status) || PROGRESS_STAGES[0];
-  const includedUnits = (s.vendorUnits || []).filter((u) => u.included);
-  const excludedUnits = (s.vendorUnits || []).filter((u) => !u.included);
   const spentPct =
     s.Vault?.allotedBudjet > 0
       ? Math.min(
@@ -1237,7 +1237,7 @@ function SpanDetail({ span: s, projects, onBack, onEdit }) {
                 </code>,
               ],
               ["Name", s.name],
-              ["Project", project?.name || "—"],
+              ["Project", s.project?.name || "—"],
               [
                 "Status",
                 <span key="st" style={{ color: stage.color, fontWeight: 600 }}>
@@ -1246,7 +1246,7 @@ function SpanDetail({ span: s, projects, onBack, onEdit }) {
               ],
               [
                 "Work Items",
-                `${includedUnits.length} included / ${s.vendorUnits?.length || 0} total`,
+                `${s.chapters?.length || 0}`,
               ],
               ["Created", s.createdAt],
             ].map(([k, v]) => (
@@ -1423,85 +1423,142 @@ function SpanDetail({ span: s, projects, onBack, onEdit }) {
       )}
 
       {/* ── Work Items */}
-      {tab === "workitems" && (
-        <div>
-          {includedUnits.length > 0 && (
-            <div className="card" style={{ marginBottom: 16 }}>
-              <div className="card-header">
-                <span className="card-title">
-                  ✅ Included Work Items ({includedUnits.length})
+{/* ── Work Items */}
+{tab === "workitems" && (
+  <div>
+    {s.chapters?.length > 0 ? (
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {s.chapters.map((chapter) => (
+          <div className="card" key={chapter._id}>
+            {/* Chapter Header */}
+            <div className="card-header">
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div
+                  style={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: "50%",
+                    background: chapter.color || "var(--accent)",
+                    flexShrink: 0,
+                  }}
+                />
+                <span className="card-title">{chapter.name}</span>
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: "var(--text3)",
+                    background: "rgba(255,255,255,.06)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 12,
+                    padding: "2px 8px",
+                  }}
+                >
+                  {chapter.items?.length ?? 0} item{chapter.items?.length !== 1 ? "s" : ""}
                 </span>
               </div>
-              <div className="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Code</th>
-                      <th>Label</th>
-                      <th>Billing Unit</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {includedUnits.map((u) => (
-                      <tr key={u.code}>
-                        <td>
-                          <code
-                            style={{ fontSize: 12, color: "var(--accent)" }}
+            </div>
+
+            {/* Items */}
+            {chapter.items?.length > 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                {chapter.items.map((item, idx) => (
+                  <div
+                    key={item._id}
+                    style={{
+                      padding: "14px 20px",
+                      borderTop: idx === 0 ? "none" : "1px solid var(--border)",
+                    }}
+                  >
+                    {/* Item Row */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 12,
+                        marginBottom: item.measurements?.length > 0 ? 10 : 0,
+                      }}
+                    >
+                      <code
+                        style={{
+                          fontSize: 11,
+                          color: chapter.color || "var(--accent)",
+                          background: `${chapter.color || "var(--accent)"}18`,
+                          border: `1px solid ${chapter.color || "var(--accent)"}33`,
+                          borderRadius: 5,
+                          padding: "2px 7px",
+                          flexShrink: 0,
+                          marginTop: 1,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {item.code}
+                      </code>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: "var(--text)",
+                          }}
+                        >
+                          {item.label}
+                        </div>
+                        {item.description && (
+                          <div
+                            style={{
+                              fontSize: 11,
+                              color: "var(--text3)",
+                              marginTop: 2,
+                            }}
                           >
-                            {u.code}
-                          </code>
-                        </td>
-                        <td style={{ fontWeight: 600 }}>{u.label}</td>
-                        <td style={{ color: "var(--text2)", fontSize: 12 }}>
-                          {u.billingUnit}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                            {item.description}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Measurements */}
+                    {item.measurements?.length > 0 && (
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: 6,
+                          paddingLeft: 4,
+                        }}
+                      >
+                        {item.measurements.map((m) => (
+                          <MeasurementBadge key={m._id} m={m} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-            </div>
-          )}
-          {excludedUnits.length > 0 && (
-            <div className="card">
-              <div className="card-header">
-                <span className="card-title" style={{ color: "var(--text3)" }}>
-                  ⊘ Excluded Work Items ({excludedUnits.length})
-                </span>
+            ) : (
+              <div
+                style={{
+                  padding: "20px",
+                  textAlign: "center",
+                  color: "var(--text3)",
+                  fontSize: 12,
+                }}
+              >
+                No items in this chapter
               </div>
-              <div className="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Code</th>
-                      <th>Label</th>
-                      <th>Billing Unit</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {excludedUnits.map((u) => (
-                      <tr key={u.code} style={{ opacity: 0.5 }}>
-                        <td>
-                          <code style={{ fontSize: 12 }}>{u.code}</code>
-                        </td>
-                        <td>{u.label}</td>
-                        <td style={{ fontSize: 12 }}>{u.billingUnit}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-          {s.vendorUnits?.length === 0 && (
-            <EmptyState
-              icon="📦"
-              title="No work items"
-              message="No work items are assigned to this span."
-            />
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        ))}
+      </div>
+    ) : (
+      <EmptyState
+        icon="📦"
+        title="No work items"
+        message="No work items are assigned to this span."
+      />
+    )}
+  </div>
+)}
       {/* ── Vault */}
       {tab === "vault" && (
         <div className="card">
@@ -1821,6 +1878,111 @@ function StaffPanel({ spanId, existingStaff }) {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+const TYPE_META = {
+  number:      { label: "Number",      color: "#3B82F6" },
+  text:        { label: "Text",        color: "#8B5CF6" },
+  boolean:     { label: "Yes/No",      color: "#10B981" },
+  select:      { label: "Select",      color: "#F59E0B" },
+  multiselect: { label: "Multi",       color: "#F97316" },
+  table:       { label: "Table",       color: "#06B6D4" },
+  time:        { label: "Time",        color: "#EC4899" },
+  phone:       { label: "Phone",       color: "#6B7280" },
+};
+
+function MeasurementBadge({ m }) {
+  const meta = TYPE_META[m.type] || { label: m.type, color: "#6B7280" };
+  const isFixed = m.fixedNumber !== undefined || m.fixedText !== undefined;
+  const fixedVal = m.fixedNumber ?? m.fixedText;
+
+  return (
+    <div
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 5,
+        background: "rgba(255,255,255,.04)",
+        border: "1px solid var(--border)",
+        borderRadius: 6,
+        padding: "4px 9px",
+        fontSize: 11,
+        color: "var(--text2)",
+        maxWidth: 220,
+      }}
+    >
+      {/* Type pill */}
+      <span
+        style={{
+          background: `${meta.color}22`,
+          color: meta.color,
+          borderRadius: 4,
+          padding: "1px 5px",
+          fontWeight: 600,
+          fontSize: 10,
+          letterSpacing: ".04em",
+          flexShrink: 0,
+        }}
+      >
+        {meta.label}
+      </span>
+
+      {/* Label */}
+      <span
+        style={{
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {m.label}
+      </span>
+
+      {/* Unit */}
+      {m.unit && (
+        <span style={{ color: "var(--text3)", flexShrink: 0 }}>· {m.unit}</span>
+      )}
+
+      {/* Fixed value indicator */}
+      {isFixed && (
+        <span
+          style={{
+            color: "#F4A01C",
+            fontSize: 10,
+            flexShrink: 0,
+            fontWeight: 600,
+          }}
+          title={`Fixed: ${fixedVal}`}
+        >
+          ={String(fixedVal).length > 8 ? String(fixedVal).slice(0, 8) + "…" : fixedVal}
+        </span>
+      )}
+
+      {/* Photo required */}
+      {m.requiresPhoto && (
+        <span
+          title="Photo required"
+          style={{ fontSize: 11, flexShrink: 0, opacity: 0.7 }}
+        >
+          📷
+        </span>
+      )}
+
+      {/* Table column count */}
+      {m.type === "table" && m.columns?.length > 0 && (
+        <span style={{ color: "var(--text3)", fontSize: 10, flexShrink: 0 }}>
+          {m.columns.length} col{m.columns.length !== 1 ? "s" : ""}
+        </span>
+      )}
+
+      {/* Options count for select/multiselect */}
+      {(m.type === "select" || m.type === "multiselect") && m.options?.length > 0 && (
+        <span style={{ color: "var(--text3)", fontSize: 10, flexShrink: 0 }}>
+          {m.options.length} opt{m.options.length !== 1 ? "s" : ""}
+        </span>
+      )}
     </div>
   );
 }

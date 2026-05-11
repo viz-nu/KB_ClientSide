@@ -67,123 +67,115 @@ export default function Sidebar() {
         position: "relative",
       }}
     >
-      {/* Logo */}
+{/* Logo */}
+<div
+  style={{
+    padding: "16px 12px",
+    borderBottom: "1px solid var(--border)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    minHeight: 72,
+    overflow: "hidden",
+  }}
+>
+  {/* Left: icon + text */}
+  <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}>
+    {/* Logo icon */}
+<div style={{ flexShrink: 0, width: 36, height: 36 }}>
+  <svg viewBox="0 0 100 110" width="36" height="36" xmlns="http://www.w3.org/2000/svg">
+    {/* Tower legs */}
+    <line x1="50" y1="48" x2="22" y2="100" stroke="#4A6080" strokeWidth="2.5"/>
+    <line x1="50" y1="48" x2="78" y2="100" stroke="#4A6080" strokeWidth="2.5"/>
+    <line x1="36" y1="74" x2="64" y2="74" stroke="#4A6080" strokeWidth="1.8"/>
+    <line x1="28" y1="88" x2="72" y2="88" stroke="#4A6080" strokeWidth="1.8"/>
+    {/* Mast */}
+    <line x1="50" y1="48" x2="50" y2="8" stroke="#E8EEF7" strokeWidth="2.5"/>
+    <line x1="40" y1="24" x2="60" y2="24" stroke="#E8EEF7" strokeWidth="2"/>
+    <line x1="43" y1="16" x2="57" y2="16" stroke="#E8EEF7" strokeWidth="2"/>
+    {/* Tip glow */}
+    <circle cx="50" cy="7" r="4" fill="#F4A01C"/>
+    {/* Signal arcs */}
+    <path d="M 30 30 A 24 24 0 0 1 70 30" stroke="#F4A01C" strokeWidth="2.2" fill="none" opacity="0.9"/>
+    <path d="M 18 20 A 38 38 0 0 1 82 20" stroke="#F4A01C" strokeWidth="1.5" fill="none" opacity="0.5"/>
+    <path d="M 6 10 A 52 52 0 0 1 94 10" stroke="#F4A01C" strokeWidth="1" fill="none" opacity="0.25"/>
+    {/* Base */}
+    <rect x="44" y="100" width="12" height="8" rx="2" fill="#4A6080"/>
+    <rect x="30" y="107" width="40" height="4" rx="2" fill="#4A6080"/>
+  </svg>
+</div>
+    <div
+      style={{
+        opacity: collapsed ? 0 : 1,
+        transform: collapsed ? "translateX(-8px)" : "translateX(0)",
+        transition: "opacity 0.2s ease, transform 0.2s ease",
+        whiteSpace: "nowrap",
+        pointerEvents: collapsed ? "none" : "auto",
+        overflow: "hidden",
+        minWidth: 0,
+      }}
+    >
       <div
         style={{
-          padding: "22px 20px 16px",
-          borderBottom: "1px solid var(--border)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: collapsed ? "center" : "space-between",
-          gap: 10,
-          minHeight: 72,
-          overflow: "hidden",
+          fontFamily: "var(--font-head)",
+          fontSize: 15,
+          fontWeight: 800,
+          color: "var(--accent)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-          <div style={{ fontSize: 28, flexShrink: 0 }}>🚂</div>
-          <div
-            style={{
-              opacity: collapsed ? 0 : 1,
-              transform: collapsed ? "translateX(-8px)" : "translateX(0)",
-              transition: "opacity 0.2s ease, transform 0.2s ease",
-              whiteSpace: "nowrap",
-              pointerEvents: collapsed ? "none" : "auto",
-            }}
-          >
-            <div
-              style={{
-                fontFamily: "var(--font-head)",
-                fontSize: 17,
-                fontWeight: 800,
-                color: "var(--accent)",
-              }}
-            >
-              e-MB Portal
-            </div>
-            <div
-              style={{
-                fontSize: 10,
-                color: "var(--text2)",
-                textTransform: "uppercase",
-                letterSpacing: ".1em",
-                marginTop: 1,
-              }}
-            >
-              Rail Signalling · Sch-N
-            </div>
-          </div>
-        </div>
-
-        {/* Toggle button — only visible when expanded */}
-        {!collapsed && (
-          <button
-            onClick={() => setCollapsed(true)}
-            title="Collapse sidebar"
-            style={{
-              background: "rgba(255,255,255,.06)",
-              border: "1px solid rgba(255,255,255,.1)",
-              borderRadius: 6,
-              color: "var(--text2)",
-              width: 26,
-              height: 26,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              flexShrink: 0,
-              fontSize: 13,
-              transition: "all .15s",
-              padding: 0,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,.12)";
-              e.currentTarget.style.color = "var(--accent)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,.06)";
-              e.currentTarget.style.color = "var(--text2)";
-            }}
-          >
-            ◀
-          </button>
-        )}
+        STWMB
       </div>
+      <div
+        style={{
+          fontSize: 8,
+          color: "var(--text2)",
+          textTransform: "uppercase",
+          letterSpacing: ".08em",
+          marginTop: 1,
+          lineHeight: 1.4,
+        }}
+      >
+        Signaling &amp; Telecom
+        <br />
+        Works Measurement Book
+      </div>
+    </div>
+  </div>
 
-      {/* Expand button — only visible when collapsed */}
-      {collapsed && (
-        <div style={{ padding: "10px 12px 0" }}>
-          <button
-            onClick={() => setCollapsed(false)}
-            title="Expand sidebar"
-            style={{
-              background: "rgba(255,255,255,.06)",
-              border: "1px solid rgba(255,255,255,.1)",
-              borderRadius: 6,
-              color: "var(--text2)",
-              width: "100%",
-              height: 30,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              fontSize: 13,
-              transition: "all .15s",
-              padding: 0,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,.12)";
-              e.currentTarget.style.color = "var(--accent)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,.06)";
-              e.currentTarget.style.color = "var(--text2)";
-            }}
-          >
-            ▶
-          </button>
-        </div>
-      )}
+  {/* Toggle button — always present, shifts to center when collapsed */}
+  <button
+    onClick={() => setCollapsed((c) => !c)}
+    title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+    style={{
+      background: "rgba(255,255,255,.06)",
+      border: "1px solid rgba(255,255,255,.1)",
+      borderRadius: 6,
+      color: "var(--text2)",
+      width: 26,
+      height: 26,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      cursor: "pointer",
+      flexShrink: 0,
+      fontSize: 12,
+      transition: "all .15s",
+      padding: 0,
+      marginLeft: collapsed ? "auto" : 8,
+      marginRight: collapsed ? "auto" : 0,
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.background = "rgba(255,255,255,.12)";
+      e.currentTarget.style.color = "var(--accent)";
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.background = "rgba(255,255,255,.06)";
+      e.currentTarget.style.color = "var(--text2)";
+    }}
+  >
+    {collapsed ? "▶" : "◀"}
+  </button>
+</div>
 
       {/* Nav */}
       <nav
