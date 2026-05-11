@@ -1,7 +1,8 @@
+import { useQuery } from "@apollo/client";
+import { SPAN_QUERIES } from "../../../../apollo/gql.js";
 import { EmptyState } from "../../../../components/common/index.jsx";
 import LineItemCard from "../components/LineItemCard.jsx";
-export default function StepLineItems({ form, addLine,removeLine,updateLine }) {
-
+export default function StepLineItems({ form, set, addLine,removeLine,updateLine, activeChapter }) {
   return (
     <div>
       <div
@@ -30,7 +31,7 @@ export default function StepLineItems({ form, addLine,removeLine,updateLine }) {
           }
         />
       )}
-      <LineItemCard form={form} updateLine={updateLine} removeLine={removeLine}/>
+      <LineItemCard form={form} set={set} updateLine={updateLine} removeLine={removeLine} activeChapter={activeChapter}/>
     </div>
   );
 }

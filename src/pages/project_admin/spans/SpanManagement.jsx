@@ -47,7 +47,7 @@ export default function SpanManagement() {
     // loading: spansLoading,
     // error: spansError,
     refetch: spansRefetch,
-  } = useQuery(SPAN_QUERIES.get, {
+  } = useQuery(SPAN_QUERIES.list, {
     fetchPolicy: "cache-and-network",
     variables: { page: 1, limit: 10 },
   });

@@ -1,134 +1,356 @@
-import React from "react";
-import { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 
-export default function CameraCapture({ photos, setPhotos }) {
+export default function CameraCapture({
+  photos = [],
+  setPhotos,
+  fieldLabel = "Photos",
+}) {
   const videoRef = useRef(null);
   const [capturing, setCapturing] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [cameraReady, setCameraReady] = useState(false);
 
-  // Start Camera
+
+
   const startCamera = async () => {
-    setCapturing(true); setError(''); setCameraReady(false);
+    setCapturing(true);
+    setError("");
+    setCameraReady(false);
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          setCameraReady(true);
-        };
-        await videoRef.current.play();
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error("getUserMedia is not supported in this browser");
       }
+
+      const constraints = {
+        video: {
+          facingMode: "environment",
+        },
+      };
+
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      if (!videoRef.current)throw new Error("Video element not found");
+      videoRef.current.srcObject = stream;
+      videoRef.current.onloadedmetadata = async () => {
+        try {
+          await videoRef.current.play();
+          setCameraReady(true);
+        } catch (playErr) {
+          console.error("video.play() failed:", playErr);
+          setError(`Unable to play camera preview: ${playErr.message}`);
+        }
+      };
     } catch (err) {
-      setError('Unable to access camera. Permission denied?');
+      console.error("startCamera() failed:", err);
+      setError(`Unable to access camera: ${err.message}`);
       setCapturing(false);
     }
   };
 
-  // Capture photo
-  const capturePhoto = async () => {
-    if (!videoRef.current || !cameraReady) {
-      setError('Camera is not ready yet. Please wait a moment.');
-      return;
+  /**
+   * Stop camera
+   */
+  const stopCamera = () => {
+    const stream = videoRef.current?.srcObject;
+    if (stream) {
+      const tracks = stream.getTracks();
+      tracks.forEach((track) => {
+        track.stop();
+      });
     }
-    if (!videoRef.current.videoWidth || !videoRef.current.videoHeight) {
-      setError('Camera preview is not initialized yet.');
-      return;
-    }
-    // Get position first
-    navigator.geolocation.getCurrentPosition(async (loc) => {
-      const { latitude, longitude } = loc.coords;
-      const canvas = document.createElement('canvas');
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      canvas.getContext('2d').drawImage(videoRef.current, 0, 0);
-      const url = canvas.toDataURL('image/jpeg', 0.95);
-      // Attach photo to state
-      setPhotos((prev) => [
-        ...prev,
-        {
-          id: `${Date.now()}_${Math.random()}`,
-          url,
-          caption: `Photo [${new Date().toLocaleString()}]`,
-          gpsLat: latitude,
-          gpsLng: longitude,
-          capturedAt: new Date().toISOString(),
-        }
-      ]);
-      // Optionally stop camera stream after capture
-      // videoRef.current.srcObject.getTracks().forEach(track => track.stop());
-      // setCapturing(false);
-    }, (err) => setError("Failed to fetch GPS: " + err.message), { enableHighAccuracy: true, timeout: 10000 });
+    if (videoRef.current)  videoRef.current.srcObject = null;
+    setCapturing(false);
+    setCameraReady(false);
   };
 
-  // Remove photo
-  const removePhoto = (id) => setPhotos(photos.filter(p => p.id !== id));
+  /**
+   * Capture photo + GPS
+   */
+  const capturePhoto = () => {
+    if (!videoRef.current) {
+      setError("Video element not available.");
+      return;
+    }
 
-  // Cleanup on unmount
-  React.useEffect(() => {
-    return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+    if (!cameraReady) {
+      setError("Camera not ready yet.");
+      return;
+    }
+
+    const width = videoRef.current.videoWidth;
+    const height = videoRef.current.videoHeight;
+
+
+    if (!width || !height) {
+      setError("Camera preview not initialized.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (loc) => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            throw new Error("Unable to get canvas context");
+          }
+          ctx.drawImage(videoRef.current, 0, 0, width, height);
+          const imageUrl = canvas.toDataURL("image/jpeg", 0.92);
+          const newPhoto = {
+            id: `${Date.now()}_${Math.random()
+              .toString(36)
+              .slice(2)}`,
+            url: imageUrl,
+            caption: "",
+            pointLocation: {
+              type: "Point",
+              coordinates: [
+                loc.coords.longitude,
+                loc.coords.latitude,
+              ],
+            },
+            capturedAt: new Date().toISOString(),
+          }
+          setPhotos([...photos, newPhoto]);
+          setError("");
+        } catch (err) {
+          console.error("Capture processing failed:", err);
+          setError(`Capture failed: ${err.message}`);
+        }
+      },
+      (geoErr) => {
+        console.error("Geolocation failed:", geoErr);
+        setError(`GPS failed: ${geoErr.message}`);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
       }
+    );
+  };
+
+  /**
+   * Remove photo
+   */
+  const removePhoto = (id) => {
+    const updated = photos.filter((p) => p.id !== id);
+    setPhotos(updated);
+  };
+
+  /**
+   * Update caption
+   */
+  const updateCaption = (id, caption) => {
+
+    const updated = photos.map((p) =>
+      p.id === id ? { ...p, caption } : p
+    );
+
+    setPhotos(updated);
+  };
+
+  /**
+   * Debug photos prop changes
+   */
+  useEffect(() => {
+  }, [photos]);
+
+  /**
+   * Cleanup on unmount
+   */
+  useEffect(() => {
+    return () => {
+      stopCamera();
     };
   }, []);
 
   return (
     <div>
-      <div style={{
-        padding: 14,
-        borderRadius: 8,
-        border: '1px solid var(--border)',
-        background: 'rgba(255,255,255,.03)',
-        marginBottom: 14,
-        marginTop: 8,
-        textAlign: 'center',
-        minHeight: 80
-      }}>
+      <div
+        style={{
+          borderRadius: 10,
+          border: "1px solid var(--border)",
+          background: "rgba(255,255,255,.03)",
+          marginBottom: 12,
+          overflow: "hidden",
+        }}
+      >
         {!capturing ? (
-          <button className="btn btn-primary" onClick={startCamera} style={{fontSize:16}}>
-            <span style={{fontSize:24, marginRight:8}}>📷</span> Start Camera
-          </button>
+          <div style={{ padding: 20, textAlign: "center" }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={startCamera}
+            >
+              📷 Start Camera
+            </button>
+            <div
+              style={{
+                fontSize: 11,
+                color: "var(--text3)",
+                marginTop: 8,
+              }}
+            >
+              Rear camera · GPS-tagged capture
+            </div>
+          </div>
         ) : (
-          <>
+          <div style={{ position: "relative" }}>
             <video
               ref={videoRef}
-              style={{ width: '100%', maxWidth: 320, borderRadius: 10, marginBottom: 10, background: '#000' }}
               autoPlay
               playsInline
               muted
+              style={{
+                width: "100%",
+                maxHeight: 280,
+                objectFit: "cover",
+                display: "block",
+                background: "#000",
+              }}
             />
-            <div>
-              <button className="btn btn-success" onClick={capturePhoto} style={{fontSize:16}} disabled={!cameraReady}>
-                <span style={{fontSize:20, marginRight:8}}>📸</span> Capture Photo (with GPS)
+
+            {!cameraReady && (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "rgba(0,0,0,.6)",
+                  color: "#fff",
+                }}
+              >
+                Starting camera...
+              </div>
+            )}
+
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                justifyContent: "center",
+                padding: "10px 14px",
+                background: "rgba(0,0,0,.45)",
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+              }}
+            >
+              <button
+                type="button"
+                className="btn btn-success"
+                onClick={capturePhoto}
+                disabled={!cameraReady}
+              >
+                📸 {cameraReady ? "Capture + GPS" : "Initializing..."}
               </button>
-              <button className="btn btn-outline" onClick={() => {
-                if (videoRef.current && videoRef.current.srcObject){
-                  videoRef.current.srcObject.getTracks().forEach(track => track.stop());
-                }
-                setCapturing(false); setCameraReady(false);
-              }} style={{marginLeft:10}}>
-                Stop Camera
+
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={stopCamera}
+              >
+                ✕ Stop
               </button>
             </div>
-          </>
+          </div>
         )}
-        {error && <div style={{ color: "#F43", marginTop: 10 }}>{error}</div>}
+
+        {error && (
+          <div
+            style={{
+              color: "var(--red)",
+              fontSize: 12,
+              padding: "8px 14px",
+              borderTop: "1px solid var(--border)",
+            }}
+          >
+            ⚠ {error}
+          </div>
+        )}
       </div>
+
       {photos.length > 0 && (
-        <div className="photo-grid" style={{ marginTop: 16 }}>
-          {photos.map(p => (
-            <div key={p.id} className="photo-thumb">
-              <img src={p.url} alt={p.caption} />
-              {p.gpsLat && (
-                <div style={{ position: 'absolute', bottom: 4, left: 4, background: 'rgba(0,0,0,.75)', borderRadius: 4, padding: '2px 5px', fontSize: 9, color: '#fff' }}>
-                  📍 GPS
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
+          {photos.map((p) => (
+            <div
+              key={p.id}
+              style={{
+                display: "flex",
+                gap: 10,
+                alignItems: "flex-start",
+                background: "rgba(255,255,255,.04)",
+                border: "1px solid var(--border)",
+                borderRadius: 8,
+                padding: "8px 10px",
+              }}
+            >
+              <div
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 6,
+                  overflow: "hidden",
+                  flexShrink: 0,
+                  border: "1px solid var(--border)",
+                  background: "#000",
+                }}
+              >
+                <img
+                  src={p.url}
+                  alt={p.caption || "capture"}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <input
+                  className="form-control"
+                  value={p.caption}
+                  onChange={(e) =>
+                    updateCaption(p.id, e.target.value)
+                  }
+                  placeholder="Add caption (optional)…"
+                />
+
+                <div
+                  style={{
+                    marginTop: 4,
+                    fontSize: 10,
+                    color: "var(--text3)",
+                  }}
+                >
+                  {p.pointLocation?.coordinates && (
+                    <span>
+                      📍 {p.pointLocation.coordinates[1].toFixed(5)},{" "}
+                      {p.pointLocation.coordinates[0].toFixed(5)}
+                    </span>
+                  )}
                 </div>
-              )}
+              </div>
+
               <button
+                type="button"
                 onClick={() => removePhoto(p.id)}
-                style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,.7)', border: 'none', color: '#fff', borderRadius: 4, padding: '2px 6px', cursor: 'pointer', fontSize: 11 }}
-              >✕</button>
+              >
+                ✕
+              </button>
             </div>
           ))}
         </div>

@@ -1,96 +1,123 @@
-// src/components/common/MeasurementInput.jsx
+import { useRef } from "react";
+import CameraCapture from "./CameraCapture";
+
+// ── Table Input (recursive) ───────────────────────────────────────
 function TableInput({ dim, value, onChange, depth = 0 }) {
   const cols = dim.columns || [];
   const rows = Array.isArray(value) ? value : [];
+  const isWide = (col) => col.type === "table" || col.type === "multiselect";
 
   const emptyRow = () =>
     Object.fromEntries(
-      cols.map(c => [
+      cols.map((c) => [
         c.key,
-        c.type === 'boolean' ? false : c.type === 'table' ? [] : '',
-      ])
+        c.type === "boolean" ? false : c.type === "table" ? [] : "",
+      ]),
     );
 
-  const addRow    = () => onChange([...rows, emptyRow()]);
+  const addRow = () => onChange([...rows, emptyRow()]);
   const removeRow = (i) => onChange(rows.filter((_, ri) => ri !== i));
-  const updateCell = (rowIdx, colKey, val) =>
-    onChange(rows.map((r, i) => i === rowIdx ? { ...r, [colKey]: val } : r));
+  const updateCell = (ri, key, v) =>
+    onChange(rows.map((r, i) => (i === ri ? { ...r, [key]: v } : r)));
 
-  if (cols.length === 0) {
+  if (cols.length === 0)
     return (
-      <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+      <div className="form-group" style={{ gridColumn: "1 / -1" }}>
         <label className="form-label">{dim.label}</label>
-        <div style={{ fontSize: 12, color: 'var(--text3)', padding: '10px 0' }}>
-          No columns defined for this table.
+        <div style={{ fontSize: 12, color: "var(--text3)", padding: "10px 0" }}>
+          No columns defined.
         </div>
       </div>
     );
-  }
-
-  // Split columns: table-type columns span full width, others go in the grid row
-  const isWideCol = (col) => col.type === 'table' || col.type === 'multiselect';
 
   return (
-    <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+    <div className="form-group" style={{ gridColumn: "1 / -1" }}>
       {depth === 0 && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 8,
+          }}
+        >
           <label className="form-label">{dim.label}</label>
-          <button className="btn btn-outline btn-sm" type="button" onClick={addRow}>+ Add Row</button>
+          <button
+            className="btn btn-outline btn-sm"
+            type="button"
+            onClick={addRow}
+          >
+            + Add Row
+          </button>
         </div>
       )}
-
       {rows.length === 0 ? (
-        <div style={{ fontSize: 12, color: 'var(--text3)', padding: depth === 0 ? '10px 0' : 0 }}>
-          {depth === 0 ? 'No rows — click Add Row.' : '—'}
+        <div
+          style={{
+            fontSize: 12,
+            color: "var(--text3)",
+            padding: depth === 0 ? "10px 0" : 0,
+          }}
+        >
+          {depth === 0 ? "No rows — click Add Row." : "—"}
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {rows.map((row, rIdx) => (
             <div
               key={rIdx}
               style={{
-                background: 'rgba(255,255,255,.03)',
-                border: '1px solid var(--border)',
+                background: "rgba(255,255,255,.03)",
+                border: "1px solid var(--border)",
                 borderRadius: 10,
-                padding: '12px 14px',
-                position: 'relative',
+                padding: "12px 14px",
               }}
             >
-              {/* Row number + remove */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <span style={{
-                  fontSize: 10, fontWeight: 700, color: 'var(--accent)',
-                  background: 'rgba(244,160,28,.12)', padding: '2px 8px',
-                  borderRadius: 10, letterSpacing: '.06em',
-                }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 10,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: "var(--accent)",
+                    background: "rgba(244,160,28,.12)",
+                    padding: "2px 8px",
+                    borderRadius: 10,
+                  }}
+                >
                   Row {rIdx + 1}
                 </span>
                 <button
                   type="button"
                   className="btn btn-danger btn-sm"
-                  style={{ padding: '3px 8px', fontSize: 11 }}
+                  style={{ padding: "3px 8px", fontSize: 11 }}
                   onClick={() => removeRow(rIdx)}
                 >
                   Remove
                 </button>
               </div>
-
-              {/* Narrow fields in auto-grid, wide fields (table/multiselect) full-width */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-                gap: 10,
-              }}>
-                {cols.map(col => (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(160px,1fr))",
+                  gap: 10,
+                }}
+              >
+                {cols.map((col) => (
                   <div
                     key={col.key}
-                    style={isWideCol(col) ? { gridColumn: '1 / -1' } : {}}
+                    style={isWide(col) ? { gridColumn: "1 / -1" } : {}}
                   >
-                    {/* Reuse MeasurementInput directly — no duplicate logic */}
                     <MeasurementInput
                       dim={col}
                       value={row[col.key]}
-                      onChange={val => updateCell(rIdx, col.key, val)}
+                      onChange={(v) => updateCell(rIdx, col.key, v)}
                     />
                   </div>
                 ))}
@@ -99,7 +126,6 @@ function TableInput({ dim, value, onChange, depth = 0 }) {
           ))}
         </div>
       )}
-
       {depth === 0 && rows.length > 0 && (
         <button
           className="btn btn-outline btn-sm"
@@ -114,11 +140,76 @@ function TableInput({ dim, value, onChange, depth = 0 }) {
   );
 }
 
-export default function MeasurementInput({ dim, value, onChange }) {
+// ═══════════════════════════════════════════════════════════════════
+// MEASUREMENT INPUT — main export
+// ═══════════════════════════════════════════════════════════════════
+export default function MeasurementInput({ dim, value, onChange, photos }) {
   const label = `${dim.label}${dim.unit ? ` (${dim.unit})` : ""}`;
 
-  console.log("Dim Itemssss",dim.type,value,onChange);
+  const hasPhotos = !!dim.requiresPhoto;
+  const setFieldValue = (v) =>
+    hasPhotos ? onChange(v, photos ?? []) : onChange(v);
 
+  const setPhotos = (p) => onChange(value, p);
+
+  const fieldNode = renderField(dim, label, value, setFieldValue);
+
+  if (!hasPhotos) return fieldNode;
+
+  return (
+    <div style={{ gridColumn: "1 / -1" }}>
+      {fieldNode}
+      <div
+        style={{
+          marginTop: 10,
+          padding: "10px 14px",
+          background: "rgba(59,130,246,.06)",
+          border: "1px solid rgba(59,130,246,.2)",
+          borderRadius: 8,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 10,
+          }}
+        >
+          <span>📍</span>
+          <span style={{ fontSize: 11, color: "#93C5FD", fontWeight: 600 }}>
+            GPS-tagged photo required for <strong>{dim.label}</strong>
+          </span>
+          {photos?.length === 0 && (
+            <span
+              style={{
+                marginLeft: "auto",
+                fontSize: 10,
+                fontWeight: 700,
+                color: "var(--red)",
+                background: "rgba(239,68,68,.12)",
+                border: "1px solid rgba(239,68,68,.25)",
+                padding: "2px 8px",
+                borderRadius: 10,
+                letterSpacing: ".06em",
+              }}
+            >
+              REQUIRED
+            </span>
+          )}
+        </div>
+        <CameraCapture
+          photos={photos}
+          setPhotos={setPhotos}
+          fieldLabel={dim.label}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ── renderField — pure field rendering, no photo logic ───────────
+function renderField(dim, label, value, onChange) {
   switch (dim.type) {
     case "boolean": {
       const checked = value === true || value === "true";
@@ -180,6 +271,7 @@ export default function MeasurementInput({ dim, value, onChange }) {
         </div>
       );
     }
+
     case "select": {
       return (
         <div className="form-group">
@@ -196,7 +288,7 @@ export default function MeasurementInput({ dim, value, onChange }) {
             }
           >
             <option value="">Select…</option>
-            {dim.options.map((opt) => (
+            {(dim.options || []).map((opt) => (
               <option key={opt} value={opt}>
                 {opt}
               </option>
@@ -205,6 +297,7 @@ export default function MeasurementInput({ dim, value, onChange }) {
         </div>
       );
     }
+
     case "text": {
       return (
         <div className="form-group">
@@ -212,7 +305,7 @@ export default function MeasurementInput({ dim, value, onChange }) {
           <input
             className="form-control"
             type="text"
-            value={(dim.fixedText !== undefined ? dim.fixedText : value)}
+            value={dim.fixedText !== undefined ? dim.fixedText : (value ?? "")}
             onChange={(e) => onChange(e.target.value)}
             readOnly={dim.fixedText !== undefined}
             style={
@@ -224,14 +317,15 @@ export default function MeasurementInput({ dim, value, onChange }) {
         </div>
       );
     }
+
     case "multiselect": {
       const selected = Array.isArray(value) ? value : [];
-      const toggle = (opt) => {
-        const next = selected.includes(opt)
-          ? selected.filter((v) => v !== opt)
-          : [...selected, opt];
-        onChange(next);
-      };
+      const toggle = (opt) =>
+        onChange(
+          selected.includes(opt)
+            ? selected.filter((v) => v !== opt)
+            : [...selected, opt],
+        );
       return (
         <div className="form-group">
           <label className="form-label">
@@ -250,7 +344,7 @@ export default function MeasurementInput({ dim, value, onChange }) {
             )}
           </label>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {dim.options.map((opt) => {
+            {(dim.options || []).map((opt) => {
               const active = selected.includes(opt);
               return (
                 <button
@@ -281,6 +375,7 @@ export default function MeasurementInput({ dim, value, onChange }) {
         </div>
       );
     }
+
     case "time": {
       return (
         <div className="form-group">
@@ -300,6 +395,7 @@ export default function MeasurementInput({ dim, value, onChange }) {
         </div>
       );
     }
+
     case "number": {
       return (
         <div className="form-group">
@@ -309,7 +405,9 @@ export default function MeasurementInput({ dim, value, onChange }) {
             type="number"
             min="0"
             step="0.001"
-            value={(dim.fixedNumber !== undefined ? dim.fixedNumber : value)}
+            value={
+              dim.fixedNumber !== undefined ? dim.fixedNumber : (value ?? "")
+            }
             onChange={(e) => onChange(e.target.value)}
             readOnly={dim.fixedNumber !== undefined}
             style={
@@ -321,40 +419,55 @@ export default function MeasurementInput({ dim, value, onChange }) {
         </div>
       );
     }
+
     case "phone": {
-      const raw = value ?? '';
-      // format as engineer types: +91 XXXXX XXXXX
+      const raw = value ?? "";
       const format = (v) => {
-        const digits = v.replace(/\D/g, '');
-        if (digits.length <= 2)  return digits.length ? '+' + digits : '';
-        if (digits.length <= 7)  return `+${digits.slice(0,2)} ${digits.slice(2)}`;
-        if (digits.length <= 12) return `+${digits.slice(0,2)} ${digits.slice(2,7)} ${digits.slice(7)}`;
-        return `+${digits.slice(0,2)} ${digits.slice(2,7)} ${digits.slice(7,12)}`;
+        const d = v.replace(/\D/g, "");
+        if (d.length <= 2) return d.length ? "+" + d : "";
+        if (d.length <= 7) return `+${d.slice(0, 2)} ${d.slice(2)}`;
+        if (d.length <= 12)
+          return `+${d.slice(0, 2)} ${d.slice(2, 7)} ${d.slice(7)}`;
+        return `+${d.slice(0, 2)} ${d.slice(2, 7)} ${d.slice(7, 12)}`;
       };
-      const isValid = /^\+\d{1,3} \d{4,6} \d{4,6}$/.test(raw) || raw === '';
+      const isValid = /^\+\d{1,3} \d{4,6} \d{4,6}$/.test(raw) || raw === "";
       return (
         <div className="form-group">
           <label className="form-label">{label}</label>
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: "relative" }}>
             <input
               className="form-control"
               type="tel"
               value={raw}
               placeholder="+91 98765 43210"
-              onChange={e => onChange(format(e.target.value))}
+              onChange={(e) => onChange(format(e.target.value))}
               style={{
                 paddingLeft: 36,
-                borderColor: !isValid && raw ? 'var(--red)' : undefined,
+                borderColor: !isValid && raw ? "var(--red)" : undefined,
               }}
             />
-            <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 14, pointerEvents: 'none' }}>📞</span>
+            <span
+              style={{
+                position: "absolute",
+                left: 12,
+                top: "50%",
+                transform: "translateY(-50%)",
+                fontSize: 14,
+                pointerEvents: "none",
+              }}
+            >
+              📞
+            </span>
           </div>
           {!isValid && raw && (
-            <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 4 }}>Enter a valid phone number with country code</div>
+            <div style={{ fontSize: 11, color: "var(--red)", marginTop: 4 }}>
+              Enter a valid phone number with country code
+            </div>
           )}
         </div>
       );
     }
+
     case "table": {
       return <TableInput dim={dim} value={value} onChange={onChange} />;
     }
@@ -368,11 +481,13 @@ export default function MeasurementInput({ dim, value, onChange }) {
             type="number"
             min="0"
             step="0.001"
-            value={value ?? (dim.fixed !== undefined ? dim.fixed : "")}
+            value={
+              dim.fixedNumber !== undefined ? dim.fixedNumber : (value ?? "")
+            }
             onChange={(e) => onChange(e.target.value)}
-            readOnly={dim.fixed !== undefined}
+            readOnly={dim.fixedNumber !== undefined}
             style={
-              dim.fixed !== undefined
+              dim.fixedNumber !== undefined
                 ? { opacity: 0.6, cursor: "not-allowed" }
                 : {}
             }
@@ -382,4 +497,3 @@ export default function MeasurementInput({ dim, value, onChange }) {
     }
   }
 }
-

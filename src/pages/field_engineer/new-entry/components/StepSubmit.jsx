@@ -1,16 +1,10 @@
-import CameraCapture from "../../../../components/common/CameraCapture";
-export default function StepPhotosSubmit({ form, set }) {
-
+export default function StepSubmit({
+  form,
+  activeSpan,
+  activeChapter
+}) {
   return (
     <div>
-      <div className="card-title" style={{ marginBottom: 16 }}>
-        Capture GPS-Tagged Photographs
-      </div>
-      <CameraCapture
-        photos={form.photos}
-        setPhotos={(photos) => set("photos", photos)}
-      />
-
       {/* Summary box */}
       <div
         style={{
@@ -35,15 +29,11 @@ export default function StepPhotosSubmit({ form, set }) {
           style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}
         >
           {[
-            ["Title", form.title],
-            ["Category", form.workCategory?.split(" (")[0]],
+            ["Project", activeSpan?.project?.name],
+            ["Span", activeSpan?.name],
+            ["Chapter", activeChapter?.name],
             ["Location", form.locationDescription],
-            [
-              "GPS",
-              form.gpsLat ? `${form.gpsLat}, ${form.gpsLng}` : "Not captured",
-            ],
             ["Line Items", form.lineItems.length],
-            ["Photos", form.photos.length],
           ].map(([k, v]) => (
             <div
               key={k}

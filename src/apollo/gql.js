@@ -250,7 +250,7 @@ export const SPAN_QUERIES={
     createSpan(spanInput: $spanInput) 
   }`,
   //remove:gql``,
-  get:gql`query getSpans($page: Int, $limit: Int) {
+  list:gql`query getSpans($page: Int, $limit: Int) {
     spans(page: $page, limit: $limit) {
       data {
         _id
@@ -310,23 +310,50 @@ export const SPAN_QUERIES={
 // ─────────────────────────────────────────────
 // e-MB ENTRIES
 // ─────────────────────────────────────────────
-export const LIST_EMB_ENTRIES = gql`
-  query ListEmbEntries(
-    $spanId: ID, $engineerId: ID, $status: EntryStatus,
-    $workCategory: String, $from: String, $to: String,
-    $page: Int, $limit: Int
-  ) {
-    embEntries(
-      spanId: $spanId, engineerId: $engineerId, status: $status,
-      workCategory: $workCategory, from: $from, to: $to,
-      page: $page, limit: $limit
-    ) {
-      total
-      items { ...EmbEntryFields }
+export const EMB_ENTRY={
+  create:gql`mutation CreateActivity($activityInput: ActivityInput!) {
+  createActivity(activityInput: $activityInput){ _id }
+}
+`,
+list:gql`query activities($page: Int, $limit: Int, $status: String, ) {
+  activities(page: $page, limit: $limit, status: $status) {
+    data {
+      _id
+      WorkCategory
+      adminRemark
+      remarks
+      status
+      span {
+        _id
+        name
+      }
+      project {
+        _id
+        name
+      }
+      createdAt
+      updatedAt
     }
   }
-  ${EMB_ENTRY_FRAGMENT}
-`;
+}
+`,
+update:gql`mutation UpdateActivityStatus($_id: ID!, $status: String!, $adminRemark: String, $returnReason: String) {
+     updateActivity(
+       _id: $_id,
+       activityInput: {
+         status: $status,
+         adminRemark: $adminRemark,
+         returnReason: $returnReason
+       }
+     ) {
+       _id
+       status
+       adminRemark
+       remarks
+     }
+   }
+`,
+}
 
 export const GET_EMB_ENTRY = gql`
   query GetEmbEntry($id: ID!) {

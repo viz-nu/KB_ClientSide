@@ -1,31 +1,133 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../../hooks/useAuth.js";
 import { PageHeader, Spinner } from "../../../components/common/index.jsx";
-import { useEmbForm } from "../../../hooks/useEmbForm.js";
 import StepBasicInfo from "./components/StepBasicInfo.jsx";
 import StepLineItems from "./components/StepLineItems.jsx";
-import StepPhotosSubmit from "./components/StepPhotosSubmit.jsx";
-import ProjectSpanModal from "./components/ProjectSpanModal.jsx";
+import StepSubmit from "./components/StepSubmit.jsx";
+import { useMutation, useQuery } from "@apollo/client";
+import { SPAN_QUERIES, EMB_ENTRY } from "../../../apollo/gql.js";
 export default function NewEmbEntry() {
-
   const navigate = useNavigate();
-  const { form, handleSubmit, confirmAssignment, saving,set, setStep, step,captureGPS,addLine,removeLine,updateLine } =useEmbForm();
-  const { user } = useAuth();
+  const [createEmbEntry] = useMutation(EMB_ENTRY.create);
+  const [step, setStep] = useState(1);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    spanId: "",
+    workCategory: "",
+    locationDescription: "",
+    lineItems: [],
+    remarks: "",
+  });
+  // 🔹 generic setter
+  const set = (key, value) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
 
-  // add to state declarations (after saving):
-  const [showProjectModal, setShowProjectModal] = useState(false);
-  // const [assignment, setAssignment] = useState(null); // { projectId, projectName, spanId, spanName }
-  // const total = form.lineItems.reduce((s, li) => s + (li.amount || 0), 0);
+  // ─────────────────────────────
+  // 📍 GPS
+  // ─────────────────────────────
+  const captureGPS = () => {
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => {
+        set("gpsLat", pos.coords.latitude.toFixed(6));
+        set("gpsLng", pos.coords.longitude.toFixed(6));
+      },
+      () => alert("GPS capture failed. Please enter manually."),
+    );
+  };
 
-  const STEPS = [
-    "Basic Info",
-    "Line Items",
-    //"SEM Checklist",
-    "Photos & Submit",
-  ];
+  // ─────────────────────────────
+  // 🚀 SUBMIT
+  // ─────────────────────────────
 
-  console.log("Form Details",form);
+  const handleSubmit = async (asDraft = false) => {
+    try {
+      const payload = {
+        // status: asDraft ? "DRAFT" : "PENDING",
+        spanId: form.spanId,
+        locationDescription: form.locationDescription,
+        remarks: form.remarks,
+        WorkCategory: form.workCategory,
+        lineItems: form.lineItems.map(
+          (__typename, _id, measurements, ...rest) => ({
+            ...rest,
+            measurements: measurements.map(
+              ({ __typename, _id, ...rest }) => rest,
+            ),
+          }),
+        ),
+      };
+      console.log("payload:", payload);
+      setSaving(true);
+      await createEmbEntry({ variables: { activityInput: payload } });
+      setSaving(false);
+      navigate("/my-entries");
+    } catch (error) {
+      console.error("Submit error:", error);
+      setSaving(false);
+      alert("Submit failed. Please try again.");
+    }
+  };
+
+  const {
+    data: spansData,
+    loading: spansLoading,
+    error: spansError,
+  } = useQuery(SPAN_QUERIES.list, {
+    fetchPolicy: "cache-and-network",
+    variables: { page: 1, limit: 50 },
+  });
+  const spans = spansData?.spans?.data ?? [];
+  const activeSpan = spans.find((s) => s._id === form.spanId) ?? null;
+  const activeChapter =
+    activeSpan?.chapters?.find((c) => c.name === form.workCategory) ?? null;
+
+  // ─────────────────────────────
+  // 📋 LINE ITEMS
+  // ─────────────────────────────
+  const addLine = () => {
+    set("lineItems", [
+      ...form.lineItems,
+      {
+        id: `li-${Date.now()}`,
+        label: "",
+        code: "",
+        description: "",
+        measurements: [],
+        remarks: "",
+      },
+    ]);
+  };
+
+  const removeLine = (id) => {
+    set(
+      "lineItems",
+      form.lineItems.filter((li) => li.id !== id),
+    );
+  };
+
+  const updateLine = (id, lineItem) => {
+    const existingLineItem = form.lineItems.find((li) => li.id === id);
+    if (!existingLineItem) return;
+    set(
+      "lineItems",
+      form.lineItems.map((li) =>
+        li.id === id ? { ...existingLineItem, ...lineItem } : li,
+      ),
+    );
+  };
+
+  const handleSpanChange = (spanId) => {
+    set("spanId", spanId);
+    set("workCategory", ""); // reset downstream
+    set("lineItems", []);
+  };
+
+  const handleCategoryChange = (name) => {
+    set("workCategory", name);
+    set("lineItems", []);
+  };
+  const STEPS = ["Basic Info", "Line Items", "Photos & Submit"];
 
   return (
     <div className="fade-up">
@@ -77,16 +179,41 @@ export default function NewEmbEntry() {
           ))}
         </div>
 
-        {step === 1 && <StepBasicInfo  form={form} set={set} captureGPS={captureGPS} />}
+        {step === 1 && (
+          <StepBasicInfo
+            form={form}
+            set={set}
+            captureGPS={captureGPS}
+            spans={spans}
+            spansLoading={spansLoading}
+            spansError={spansError}
+            activeSpan={activeSpan}
+            activeChapter={activeChapter}
+            handleSpanChange={handleSpanChange}
+            handleCategoryChange={handleCategoryChange}
+          />
+        )}
 
         {/* ── Step 2: Line Items */}
-        {step === 2 && <StepLineItems  form={form} addLine={addLine} updateLine={updateLine} removeLine={removeLine}/>}
+        {step === 2 && (
+          <StepLineItems
+            form={form}
+            set={set}
+            activeChapter={activeChapter}
+            addLine={addLine}
+            updateLine={updateLine}
+            removeLine={removeLine}
+          />
+        )}
 
-        {/* ── Step 3: SEM Checklist */}
-        {/* {step === 3 && <StepSEMChecklist />} */}
-
-        {/* ── Step 4: Photos & Submit */}
-        {step === 3 && <StepPhotosSubmit form={form} set={set}/>}
+        {/* ── Step 4: Submit */}
+        {step === 3 && (
+          <StepSubmit
+            form={form}
+            activeSpan={activeSpan}
+            activeChapter={activeChapter}
+          />
+        )}
 
         {/* Navigation */}
         <div
@@ -111,7 +238,7 @@ export default function NewEmbEntry() {
               <button
                 className="btn btn-primary"
                 onClick={() => setStep((s) => s + 1)}
-                disabled={step === 1 && (!form.workCategory)}
+                disabled={step === 1 && !form.workCategory}
               >
                 Next →
               </button>
@@ -120,14 +247,18 @@ export default function NewEmbEntry() {
               <>
                 <button
                   className="btn btn-outline"
-                  onClick={() => handleSubmit(true)}
+                  onClick={async () => {
+                    await handleSubmit(true);
+                  }}
                   disabled={saving}
                 >
                   Save as Draft
                 </button>
                 <button
                   className="btn btn-primary"
-                  onClick={() => handleSubmit(false)}
+                  onClick={async () => {
+                    await handleSubmit(false);
+                  }}
                   disabled={saving}
                 >
                   {saving ? (
@@ -139,16 +270,6 @@ export default function NewEmbEntry() {
               </>
             )}
           </div>
-
-          {showProjectModal && (
-            <ProjectSpanModal
-              user={user}
-              onClose={() => setShowProjectModal(false)}
-              onConfirm={(result) => {
-                confirmAssignment(result);
-              }}
-            />
-          )}
         </div>
       </div>
     </div>
