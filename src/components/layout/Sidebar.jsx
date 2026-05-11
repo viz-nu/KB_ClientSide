@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth.js";
+import { useState } from "react";
 
 const NAV_CONFIG = {
   system_admin: [
@@ -39,6 +40,8 @@ const NAV_CONFIG = {
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
+  const [collapsed, setCollapsed] = useState(false);
+
   if (!user) return null;
 
   const groups = NAV_CONFIG[user.role] || [];
@@ -52,13 +55,16 @@ export default function Sidebar() {
   return (
     <aside
       style={{
-        width: 240,
+        width: collapsed ? 64 : 240,
         flexShrink: 0,
         background: "linear-gradient(180deg, #0D1E3A 0%, #091629 100%)",
         borderRight: "1px solid var(--border)",
         display: "flex",
         flexDirection: "column",
         overflowY: "auto",
+        overflowX: "hidden",
+        transition: "width 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+        position: "relative",
       }}
     >
       {/* Logo */}
@@ -66,11 +72,25 @@ export default function Sidebar() {
         style={{
           padding: "22px 20px 16px",
           borderBottom: "1px solid var(--border)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: collapsed ? "center" : "space-between",
+          gap: 10,
+          minHeight: 72,
+          overflow: "hidden",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ fontSize: 28 }}>🚂</div>
-          <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+          <div style={{ fontSize: 28, flexShrink: 0 }}>🚂</div>
+          <div
+            style={{
+              opacity: collapsed ? 0 : 1,
+              transform: collapsed ? "translateX(-8px)" : "translateX(0)",
+              transition: "opacity 0.2s ease, transform 0.2s ease",
+              whiteSpace: "nowrap",
+              pointerEvents: collapsed ? "none" : "auto",
+            }}
+          >
             <div
               style={{
                 fontFamily: "var(--font-head)",
@@ -94,20 +114,91 @@ export default function Sidebar() {
             </div>
           </div>
         </div>
+
+        {/* Toggle button — only visible when expanded */}
+        {!collapsed && (
+          <button
+            onClick={() => setCollapsed(true)}
+            title="Collapse sidebar"
+            style={{
+              background: "rgba(255,255,255,.06)",
+              border: "1px solid rgba(255,255,255,.1)",
+              borderRadius: 6,
+              color: "var(--text2)",
+              width: 26,
+              height: 26,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              flexShrink: 0,
+              fontSize: 13,
+              transition: "all .15s",
+              padding: 0,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(255,255,255,.12)";
+              e.currentTarget.style.color = "var(--accent)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "rgba(255,255,255,.06)";
+              e.currentTarget.style.color = "var(--text2)";
+            }}
+          >
+            ◀
+          </button>
+        )}
       </div>
+
+      {/* Expand button — only visible when collapsed */}
+      {collapsed && (
+        <div style={{ padding: "10px 12px 0" }}>
+          <button
+            onClick={() => setCollapsed(false)}
+            title="Expand sidebar"
+            style={{
+              background: "rgba(255,255,255,.06)",
+              border: "1px solid rgba(255,255,255,.1)",
+              borderRadius: 6,
+              color: "var(--text2)",
+              width: "100%",
+              height: 30,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              fontSize: 13,
+              transition: "all .15s",
+              padding: 0,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(255,255,255,.12)";
+              e.currentTarget.style.color = "var(--accent)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "rgba(255,255,255,.06)";
+              e.currentTarget.style.color = "var(--text2)";
+            }}
+          >
+            ▶
+          </button>
+        </div>
+      )}
 
       {/* Nav */}
       <nav
         style={{
           flex: 1,
-          padding: "16px 12px",
+          padding: collapsed ? "16px 8px" : "16px 12px",
           display: "flex",
           flexDirection: "column",
           gap: 0,
+          transition: "padding 0.25s ease",
         }}
       >
         {groups.map((group) => (
           <div key={group.group}>
+            {/* Group label — hidden when collapsed */}
             <div
               style={{
                 fontSize: 9,
@@ -116,20 +207,28 @@ export default function Sidebar() {
                 textTransform: "uppercase",
                 letterSpacing: ".12em",
                 margin: "12px 8px 4px",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                opacity: collapsed ? 0 : 1,
+                maxHeight: collapsed ? 0 : 20,
+                transition: "opacity 0.2s ease, max-height 0.2s ease",
               }}
             >
               {group.group}
             </div>
+
             {group.items.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 end={item.to === "/dashboard"}
+                title={collapsed ? item.label : undefined}
                 style={({ isActive }) => ({
                   display: "flex",
                   alignItems: "center",
-                  gap: 10,
-                  padding: "10px 12px",
+                  gap: collapsed ? 0 : 10,
+                  padding: collapsed ? "10px 0" : "10px 12px",
+                  justifyContent: collapsed ? "center" : "flex-start",
                   borderRadius: 8,
                   fontSize: 13,
                   fontWeight: 500,
@@ -138,12 +237,30 @@ export default function Sidebar() {
                   textDecoration: "none",
                   transition: "all .15s",
                   marginBottom: 2,
+                  overflow: "hidden",
+                  whiteSpace: "nowrap",
                 })}
               >
-                <span style={{ fontSize: 16, width: 20, textAlign: "center" }}>
+                <span
+                  style={{
+                    fontSize: 16,
+                    width: 20,
+                    textAlign: "center",
+                    flexShrink: 0,
+                  }}
+                >
                   {item.icon}
                 </span>
-                {item.label}
+                <span
+                  style={{
+                    opacity: collapsed ? 0 : 1,
+                    maxWidth: collapsed ? 0 : 200,
+                    overflow: "hidden",
+                    transition: "opacity 0.2s ease, max-width 0.25s ease",
+                  }}
+                >
+                  {item.label}
+                </span>
               </NavLink>
             ))}
           </div>
@@ -152,18 +269,26 @@ export default function Sidebar() {
 
       {/* Footer / user */}
       <div
-        style={{ padding: "16px 12px", borderTop: "1px solid var(--border)" }}
+        style={{
+          padding: collapsed ? "16px 8px" : "16px 12px",
+          borderTop: "1px solid var(--border)",
+          transition: "padding 0.25s ease",
+        }}
       >
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 10,
-            padding: "10px 12px",
+            gap: collapsed ? 0 : 10,
+            padding: collapsed ? "8px 0" : "10px 12px",
+            justifyContent: collapsed ? "center" : "flex-start",
             borderRadius: 8,
             background: "rgba(255,255,255,.04)",
             marginBottom: 8,
+            overflow: "hidden",
+            transition: "all 0.25s ease",
           }}
+          title={collapsed ? `${user.name} (${user.role.replace(/_/g, " ")})` : undefined}
         >
           <div
             style={{
@@ -182,7 +307,14 @@ export default function Sidebar() {
           >
             {initials}
           </div>
-          <div style={{ overflow: "hidden" }}>
+          <div
+            style={{
+              overflow: "hidden",
+              opacity: collapsed ? 0 : 1,
+              maxWidth: collapsed ? 0 : 160,
+              transition: "opacity 0.2s ease, max-width 0.25s ease",
+            }}
+          >
             <div
               style={{
                 fontSize: 12,
@@ -200,17 +332,20 @@ export default function Sidebar() {
                 fontSize: 10,
                 color: "var(--text2)",
                 textTransform: "capitalize",
+                whiteSpace: "nowrap",
               }}
             >
               {user.role.replace(/_/g, " ")}
             </div>
           </div>
         </div>
+
         <button
           onClick={logout}
+          title={collapsed ? "Sign Out" : undefined}
           style={{
             width: "100%",
-            padding: "8px",
+            padding: collapsed ? "8px 0" : "8px",
             background: "rgba(239,68,68,.1)",
             border: "1px solid rgba(239,68,68,.2)",
             borderRadius: 8,
@@ -222,7 +357,7 @@ export default function Sidebar() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: 6,
+            gap: collapsed ? 0 : 6,
           }}
           onMouseEnter={(e) =>
             (e.currentTarget.style.background = "rgba(239,68,68,.18)")
@@ -231,7 +366,18 @@ export default function Sidebar() {
             (e.currentTarget.style.background = "rgba(239,68,68,.1)")
           }
         >
-          <span>↩</span> Sign Out
+          <span>↩</span>
+          <span
+            style={{
+              opacity: collapsed ? 0 : 1,
+              maxWidth: collapsed ? 0 : 80,
+              overflow: "hidden",
+              transition: "opacity 0.2s ease, max-width 0.25s ease",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Sign Out
+          </span>
         </button>
       </div>
     </aside>
