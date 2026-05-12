@@ -5,17 +5,15 @@ import {
   EmptyState,
   Spinner,
 } from "../../../components/common/index.jsx";
-import {
-  PROJECT_QUERIES,
-  SPAN_QUERIES,
-} from "../../../apollo/gql.js";
+import { PROJECT_QUERIES, SPAN_QUERIES } from "../../../apollo/gql.js";
 import { useMutation, useQuery } from "@apollo/client";
 import { SpanDetail } from "./components/spanDetails.jsx";
 import { SpanForm } from "./components/spanForm.jsx";
 import { PROGRESS_STAGES } from "../../../constants/spanConstants.js";
+import { deepClean } from "../builder/projectTemplates.js";
 
 const emptySpan = () => ({
-  _id: null,
+  _id: `span-${Date.now()}`,
   name: "",
   startPoint: {
     placeName: "",
@@ -75,20 +73,15 @@ export default function SpanManagement() {
     setView("detail");
   };
 
-  const saveSpan = async (span) => {
+  const saveSpan = async (span, pov) => {
+    let spanId = pov === "edit" ? span._id : null;
+    span = deepClean(span);
     const spanInput = {
       Vault: {
         allotedBudjet: span.Vault.allotedBudjet,
         spentBudjet: span.Vault.spentBudjet,
       },
-      chapters: span.chapters.map(({ __typename, _id, items, ...rest1 }) => ({
-        ...rest1,
-        id: _id,
-        items: items.map(({ __typename, _id, ...rest2 }) => ({
-          ...rest2,
-          id: _id,
-        })),
-      })),
+      chapters: span.chapters,
       startPoint: {
         placeName: span.startPoint.placeName,
         chainNumber: Number(span.startPoint.chainNumber),
@@ -107,10 +100,10 @@ export default function SpanManagement() {
       },
       name: span.name,
     };
-    if (span._id) {
+    if (spanId) {
       await updateSpan({
         variables: {
-          id: span._id,
+          id: spanId,
           spanInput: spanInput,
         },
         update(cache) {
@@ -142,9 +135,8 @@ export default function SpanManagement() {
         <SpanForm
           span={activeSpan}
           projects={projectsData?.projects?.data ?? []}
-          onSave={saveSpan}
+          onSave={(span) => saveSpan(span, pov)}
           onCancel={() => setView("list")}
-          pov={pov}
         />
       );
     }

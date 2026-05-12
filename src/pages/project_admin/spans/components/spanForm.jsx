@@ -16,8 +16,7 @@ export const SpanForm = ({
   span: initial,
   projects,
   onSave,
-  onCancel,
-  pov,
+  onCancel
 }) => {
   const [span, setSpan] = useState(initial);
   const [step, setStep] = useState(1);

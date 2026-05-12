@@ -7,10 +7,20 @@ import {
   Spinner,
 } from "../../../components/common";
 import {
+  addMeasurement,
+  addChapter,
+  updateChapter,
+  deleteChapter,
+  moveChapter,
+  addItem,
+  updateItem,
+  deleteItem,
+  moveItem,
+  updateMeasurement,
+  deleteMeasurement,
+  moveMeasurement,
   CHAPTER_COLORS,
-  newChapter,
-  newItem,
-  newMeasurement,
+  deepClean,
 } from "./projectTemplates.js";
 import MeasurementFieldEditor from "./MeasurementFieldEditor";
 import { useMutation } from "@apollo/client";
@@ -21,58 +31,16 @@ export default function ProjectBuilderForm({
   onSave,
   onCancel,
 }) {
-  const PROJECT_INPUT_FIELDS = [
-    "name",
-    "code",
-    "description",
-    "status",
-    "chapters",
-    "Vault",
-  ];
-
-  const isDeepEqual = (a, b) => {
-    if (a === b) return true;
-    if (typeof a !== typeof b) return false;
-    if (a == null || b == null) return false;
-
-    if (Array.isArray(a)) {
-      if (!Array.isArray(b) || a.length !== b.length) return false;
-      for (let i = 0; i < a.length; i++) {
-        if (!isDeepEqual(a[i], b[i])) return false;
-      }
-      return true;
-    }
-
-    if (typeof a === "object") {
-      const keysA = Object.keys(a);
-      const keysB = Object.keys(b);
-      if (keysA.length !== keysB.length) return false;
-      for (const key of keysA) {
-        if (!isDeepEqual(a[key], b[key])) return false;
-      }
-      return true;
-    }
-
-    return false;
-  };
-
-  const getChangedProjectInput = (previous, current) => {
-    const changed = {};
-    for (const field of PROJECT_INPUT_FIELDS) {
-      if (!isDeepEqual(previous?.[field], current?.[field])) {
-        changed[field] = current[field];
-      }
-    }
-    return changed;
-  };
-
   const [createProject] = useMutation(PROJECT_QUERIES.create);
   const [updateProject] = useMutation(PROJECT_QUERIES.update);
   const [saving, setSaving] = useState(false);
   const [apiError, setApiError] = useState("");
-
   const [proj, setProj] = useState(initial);
-  const [activeChapterId, setActCh] = useState(initial.chapters[0]?.id || null);
+  const isEdit = !!proj._id;
+  const projectId = isEdit ? proj._id : null;
+  const [activeChapterId, setActCh] = useState(
+    initial.chapters[0]?._id || null,
+  );
   const [activeItemId, setActItem] = useState(null);
   const [errors, setErrors] = useState({});
 
@@ -96,161 +64,6 @@ export default function ProjectBuilderForm({
     });
   };
 
-  // chapters
-  const addChapter = () => {
-    const ch = newChapter(proj.chapters.length);
-    setProj((p) => ({ ...p, chapters: [...p.chapters, ch] }));
-    setActCh(ch.id);
-    setActItem(null);
-  };
-  const updateChapter = (id, k, v) =>
-    setProj((p) => ({
-      ...p,
-      chapters: p.chapters.map((c) => (c.id === id ? { ...c, [k]: v } : c)),
-    }));
-  const deleteChapter = (id) => {
-    setProj((p) => ({ ...p, chapters: p.chapters.filter((c) => c.id !== id) }));
-    setActCh(proj.chapters.find((c) => c.id !== id)?.id || null);
-    setActItem(null);
-  };
-  const moveChapter = (id, dir) =>
-    setProj((p) => {
-      const a = [...p.chapters];
-      const i = a.findIndex((c) => c.id === id);
-      const t = i + dir;
-      if (t < 0 || t >= a.length) return p;
-      [a[i], a[t]] = [a[t], a[i]];
-      return { ...p, chapters: a };
-    });
-
-  // items
-  const addItem = (chId) => {
-    const item = newItem();
-    setProj((p) => ({
-      ...p,
-      chapters: p.chapters.map((c) =>
-        c.id === chId ? { ...c, items: [...c.items, item] } : c,
-      ),
-    }));
-    setActItem(item.id);
-  };
-  const updateItem = (chId, iId, k, v) =>
-    setProj((p) => ({
-      ...p,
-      chapters: p.chapters.map((c) =>
-        c.id === chId
-          ? {
-              ...c,
-              items: c.items.map((i) => (i.id === iId ? { ...i, [k]: v } : i)),
-            }
-          : c,
-      ),
-    }));
-  const deleteItem = (chId, iId) => {
-    setProj((p) => ({
-      ...p,
-      chapters: p.chapters.map((c) =>
-        c.id === chId
-          ? { ...c, items: c.items.filter((i) => i.id !== iId) }
-          : c,
-      ),
-    }));
-    setActItem(null);
-  };
-  const moveItem = (chId, iId, dir) =>
-    setProj((p) => ({
-      ...p,
-      chapters: p.chapters.map((c) => {
-        if (c.id !== chId) return c;
-        const a = [...c.items];
-        const i = a.findIndex((x) => x.id === iId);
-        const t = i + dir;
-        if (t < 0 || t >= a.length) return c;
-        [a[i], a[t]] = [a[t], a[i]];
-        return { ...c, items: a };
-      }),
-    }));
-
-  // measurements
-  const addMeasurement = (chId, iId) => {
-    const m = newMeasurement();
-    setProj((p) => ({
-      ...p,
-      chapters: p.chapters.map((c) =>
-        c.id === chId
-          ? {
-              ...c,
-              items: c.items.map((i) =>
-                i.id === iId
-                  ? { ...i, measurements: [...i.measurements, m] }
-                  : i,
-              ),
-            }
-          : c,
-      ),
-    }));
-  };
-  const updateMeasurement = (chId, iId, mId, k, v) =>
-    setProj((p) => ({
-      ...p,
-      chapters: p.chapters.map((c) =>
-        c.id === chId
-          ? {
-              ...c,
-              items: c.items.map((i) =>
-                i.id === iId
-                  ? {
-                      ...i,
-                      measurements: i.measurements.map((m) =>
-                        m.id === mId ? { ...m, [k]: v } : m,
-                      ),
-                    }
-                  : i,
-              ),
-            }
-          : c,
-      ),
-    }));
-  const deleteMeasurement = (chId, iId, mId) =>
-    setProj((p) => ({
-      ...p,
-      chapters: p.chapters.map((c) =>
-        c.id === chId
-          ? {
-              ...c,
-              items: c.items.map((i) =>
-                i.id === iId
-                  ? {
-                      ...i,
-                      measurements: i.measurements.filter((m) => m.id !== mId),
-                    }
-                  : i,
-              ),
-            }
-          : c,
-      ),
-    }));
-  const moveMeasurement = (chId, iId, mId, dir) =>
-    setProj((p) => ({
-      ...p,
-      chapters: p.chapters.map((c) =>
-        c.id !== chId
-          ? c
-          : {
-              ...c,
-              items: c.items.map((i) => {
-                if (i.id !== iId) return i;
-                const a = [...i.measurements];
-                const idx = a.findIndex((m) => m.id === mId);
-                const t = idx + dir;
-                if (t < 0 || t >= a.length) return i;
-                [a[idx], a[t]] = [a[t], a[idx]];
-                return { ...i, measurements: a };
-              }),
-            },
-      ),
-    }));
-
   const validate = () => {
     const e = {};
     if (!proj.name.trim()) e.name = "Project name required";
@@ -259,49 +72,41 @@ export default function ProjectBuilderForm({
     setErrors(e);
     return !Object.keys(e).length;
   };
+
   const handleSave = async (status) => {
     if (!validate()) return;
-    const newProj = { ...proj, status };
-    const changedProjectInput = getChangedProjectInput(initial, newProj);
-    const isEdit = !!proj._id;
     setSaving(true);
     setApiError("");
-    console.log(newProj);
-    try {
-      let result;
-
-      if (isEdit) {
-        result = await updateProject({
-          variables: {
-            _id: proj._id,
-            projectInput:
-              Object.keys(changedProjectInput).length > 0
-                ? changedProjectInput
-                : { status: newProj.status },
-          },
+  
+    const cleaned = deepClean({ ...proj, status }); // strips _id, __typename, localId everywhere
+  
+    if (isEdit) {
+      try {
+        await updateProject({
+          variables: { id: projectId, projectInput: cleaned }, // proj._id kept separately
         });
-      } else {
-        result = await createProject({
-          variables: { projectInput: newProj },
-        });
+        onSave({ ...proj, status });
+      } catch (err) {
+        setApiError(err.message || "Failed to update project.");
+      } finally {
+        setSaving(false);
       }
-
-      const returned = isEdit
-        ? result.data.updateProject
-        : result.data.createProject;
-
-      // merge server _id back into local state
-      onSave({ ...newProj, _id: returned._id });
-    } catch (err) {
-      console.error("Save project failed:", err);
-      setApiError(err.message || "Failed to save project.");
-    } finally {
-      setSaving(false);
+    } else {
+      try {
+        const result = await createProject({
+          variables: { projectInput: cleaned },
+        });
+        onSave({ ...proj, _id: result.data.createProject._id, status });
+      } catch (err) {
+        setApiError(err.message || "Failed to create project.");
+      } finally {
+        setSaving(false);
+      }
     }
   };
 
-  const activeChapter = proj.chapters.find((c) => c.id === activeChapterId);
-  const activeItem = activeChapter?.items.find((i) => i.id === activeItemId);
+  const activeChapter = proj.chapters.find((c) => c._id === activeChapterId);
+  const activeItem = activeChapter?.items.find((i) => i._id === activeItemId);
 
   return (
     <div className="fade-up">
@@ -316,13 +121,6 @@ export default function ProjectBuilderForm({
               disabled={saving}
             >
               Cancel
-            </button>
-            <button
-              className="btn btn-outline"
-              onClick={() => handleSave("DRAFT")}
-              disabled={saving}
-            >
-              {saving ? <Spinner size={13} /> : "Save Draft"}
             </button>
             <button
               className="btn btn-primary"
@@ -415,7 +213,10 @@ export default function ProjectBuilderForm({
             >
               Chapters
             </span>
-            <button className="btn btn-primary btn-sm" onClick={addChapter}>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => addChapter(setProj, setActCh, setActItem)}
+            >
               +
             </button>
           </div>
@@ -433,9 +234,9 @@ export default function ProjectBuilderForm({
           ) : (
             proj.chapters.map((ch) => (
               <div
-                key={ch.id}
+                key={ch._id}
                 onClick={() => {
-                  setActCh(ch.id);
+                  setActCh(ch._id);
                   setActItem(null);
                 }}
                 style={{
@@ -444,10 +245,10 @@ export default function ProjectBuilderForm({
                   marginBottom: 4,
                   cursor: "pointer",
                   background:
-                    activeChapterId === ch.id
+                    activeChapterId === ch._id
                       ? ch.color + "22"
                       : "rgba(255,255,255,.03)",
-                  border: `1px solid ${activeChapterId === ch.id ? ch.color + "66" : "transparent"}`,
+                  border: `1px solid ${activeChapterId === ch._id ? ch.color + "66" : "transparent"}`,
                   borderLeft: `3px solid ${ch.color}`,
                 }}
               >
@@ -488,7 +289,7 @@ export default function ProjectBuilderForm({
                       style={{ padding: "2px 4px", fontSize: 10 }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        moveChapter(ch.id, -1);
+                        moveChapter(setProj, setActCh, setActItem, ch._id, -1);
                       }}
                     >
                       ▲
@@ -498,7 +299,7 @@ export default function ProjectBuilderForm({
                       style={{ padding: "2px 4px", fontSize: 10 }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        moveChapter(ch.id, 1);
+                        moveChapter(setProj, setActCh, setActItem, ch._id, 1);
                       }}
                     >
                       ▼
@@ -508,7 +309,7 @@ export default function ProjectBuilderForm({
                       style={{ padding: "2px 4px", fontSize: 10 }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        deleteChapter(ch.id);
+                        deleteChapter(setProj, setActCh, setActItem, ch._id);
                       }}
                     >
                       ✕
@@ -547,7 +348,12 @@ export default function ProjectBuilderForm({
                     className="form-control"
                     value={activeChapter.name}
                     onChange={(e) =>
-                      updateChapter(activeChapter.id, "name", e.target.value)
+                      updateChapter(
+                        setProj,
+                        activeChapter._id,
+                        "name",
+                        e.target.value,
+                      )
                     }
                     placeholder="e.g. Cable Works"
                   />
@@ -559,7 +365,8 @@ export default function ProjectBuilderForm({
                       value={activeChapter.code}
                       onChange={(e) =>
                         updateChapter(
-                          activeChapter.id,
+                          setProj,
+                          activeChapter._id,
                           "code",
                           e.target.value.toUpperCase(),
                         )
@@ -581,7 +388,12 @@ export default function ProjectBuilderForm({
                         <div
                           key={c}
                           onClick={() =>
-                            updateChapter(activeChapter.id, "color", c)
+                            updateChapter(
+                              setProj,
+                              activeChapter._id,
+                              "color",
+                              c,
+                            )
                           }
                           style={{
                             width: 20,
@@ -620,7 +432,9 @@ export default function ProjectBuilderForm({
                 </span>
                 <button
                   className="btn btn-primary btn-sm"
-                  onClick={() => addItem(activeChapter.id)}
+                  onClick={() =>
+                    addItem(setProj, setActItem, activeChapter._id)
+                  }
                 >
                   +
                 </button>
@@ -639,18 +453,18 @@ export default function ProjectBuilderForm({
               ) : (
                 activeChapter.items.map((item) => (
                   <div
-                    key={item.id}
-                    onClick={() => setActItem(item.id)}
+                    key={item._id}
+                    onClick={() => setActItem(item._id)}
                     style={{
                       padding: "9px 12px",
                       borderRadius: 8,
                       marginBottom: 4,
                       cursor: "pointer",
                       background:
-                        activeItemId === item.id
+                        activeItemId === item._id
                           ? "rgba(244,160,28,.1)"
                           : "rgba(255,255,255,.03)",
-                      border: `1px solid ${activeItemId === item.id ? "rgba(244,160,28,.3)" : "transparent"}`,
+                      border: `1px solid ${activeItemId === item._id ? "rgba(244,160,28,.3)" : "transparent"}`,
                     }}
                   >
                     <div
@@ -695,7 +509,13 @@ export default function ProjectBuilderForm({
                           style={{ padding: "2px 4px", fontSize: 10 }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            moveItem(activeChapter.id, item.id, -1);
+                            moveItem(
+                              setProj,
+                              setActItem,
+                              activeChapter._id,
+                              item._id,
+                              -1,
+                            );
                           }}
                         >
                           ▲
@@ -705,7 +525,13 @@ export default function ProjectBuilderForm({
                           style={{ padding: "2px 4px", fontSize: 10 }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            moveItem(activeChapter.id, item.id, 1);
+                            moveItem(
+                              setProj,
+                              setActItem,
+                              activeChapter._id,
+                              item._id,
+                              1,
+                            );
                           }}
                         >
                           ▼
@@ -715,7 +541,12 @@ export default function ProjectBuilderForm({
                           style={{ padding: "2px 4px", fontSize: 10 }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            deleteItem(activeChapter.id, item.id);
+                            deleteItem(
+                              setProj,
+                              setActItem,
+                              activeChapter._id,
+                              item._id,
+                            );
                           }}
                         >
                           ✕
@@ -768,8 +599,9 @@ export default function ProjectBuilderForm({
                       value={activeItem.label}
                       onChange={(e) =>
                         updateItem(
-                          activeChapter.id,
-                          activeItem.id,
+                          setProj,
+                          activeChapter._id,
+                          activeItem._id,
                           "label",
                           e.target.value,
                         )
@@ -783,8 +615,9 @@ export default function ProjectBuilderForm({
                       value={activeItem.code}
                       onChange={(e) =>
                         updateItem(
-                          activeChapter.id,
-                          activeItem.id,
+                          setProj,
+                          activeChapter._id,
+                          activeItem._id,
                           "code",
                           e.target.value.toUpperCase(),
                         )
@@ -800,8 +633,9 @@ export default function ProjectBuilderForm({
                     value={activeItem.description}
                     onChange={(e) =>
                       updateItem(
-                        activeChapter.id,
-                        activeItem.id,
+                        setProj,
+                        activeChapter._id,
+                        activeItem._id,
                         "description",
                         e.target.value,
                       )
@@ -827,7 +661,6 @@ export default function ProjectBuilderForm({
                 >
                   Measurement Fields
                 </span>
-
               </div>
               {activeItem.measurements.length === 0 ? (
                 <EmptyState
@@ -838,7 +671,11 @@ export default function ProjectBuilderForm({
                     <button
                       className="btn btn-primary btn-sm"
                       onClick={() =>
-                        addMeasurement(activeChapter.id, activeItem.id)
+                        addMeasurement(
+                          setProj,
+                          activeChapter._id,
+                          activeItem._id,
+                        )
                       }
                     >
                       + Add First Field
@@ -848,27 +685,34 @@ export default function ProjectBuilderForm({
               ) : (
                 activeItem.measurements.map((m, idx) => (
                   <MeasurementFieldEditor
-                    key={m.id}
+                    key={m._id}
                     m={m}
                     idx={idx}
                     total={activeItem.measurements.length}
                     onChange={(k, v) =>
                       updateMeasurement(
-                        activeChapter.id,
-                        activeItem.id,
-                        m.id,
+                        setProj,
+                        activeChapter._id,
+                        activeItem._id,
+                        m._id,
                         k,
                         v,
                       )
                     }
                     onDelete={() =>
-                      deleteMeasurement(activeChapter.id, activeItem.id, m.id)
+                      deleteMeasurement(
+                        setProj,
+                        activeChapter._id,
+                        activeItem._id,
+                        m._id,
+                      )
                     }
                     onMove={(dir) =>
                       moveMeasurement(
-                        activeChapter.id,
-                        activeItem.id,
-                        m.id,
+                        setProj,
+                        activeChapter._id,
+                        activeItem._id,
+                        m._id,
                         dir,
                       )
                     }
@@ -876,15 +720,14 @@ export default function ProjectBuilderForm({
                 ))
               )}
               <button
-                  className="btn btn-primary btn-sm"
-                  onClick={() =>
-                    addMeasurement(activeChapter.id, activeItem.id)
-                  }
-                >
-                  + Add Field
-                </button>
+                className="btn btn-primary btn-sm"
+                onClick={() =>
+                  addMeasurement(setProj, activeChapter._id, activeItem._id)
+                }
+              >
+                + Add Field
+              </button>
             </>
-            
           )}
         </div>
       </div>

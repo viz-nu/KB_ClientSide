@@ -11,8 +11,8 @@ import { tokenStore } from '../auth/tokenStore.js';
 import { MUTATIONS } from './gql.js';
 
 
-const GRAPHQL_URL = 'https://kbbackend-production.up.railway.app/graphql';
-// const GRAPHQL_URL = 'http://localhost:8080/graphql';
+// const GRAPHQL_URL = 'https://kbbackend-production.up.railway.app/graphql';
+const GRAPHQL_URL = 'http://localhost:8080/graphql';
 
 // ── 1. HTTP link ──────────────────────────────────────────────
 const httpLink = createHttpLink({ uri: GRAPHQL_URL });
