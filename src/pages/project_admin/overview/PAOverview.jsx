@@ -18,7 +18,7 @@ export default function PAOverview() {
   });
   return (
     <div className="fade-up">
-      <PageHeader title={`${user.span?.name || 'User Span name goes here'} Dashboard`} subtitle="Overview of e-MB activity in your span" />
+      <PageHeader title={`Dashboard`} subtitle="Overview of e-MB activity in your span" />
       <div className="stats-grid">
         <StatCard icon="📋" number={stats.total}    label="Total Entries"  color="var(--blue)"   />
         <StatCard icon="⏳" number={stats.pending}  label="Pending Review" color="var(--yellow)" />

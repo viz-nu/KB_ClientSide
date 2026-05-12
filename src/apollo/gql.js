@@ -246,7 +246,7 @@ get:gql`
 }
 
 export const SPAN_QUERIES={
-  create:gql`mutation createSpan($spanInput: SpanInput!) {
+  create:gql`mutation createSpan($spanInput: SpanInput) {
     createSpan(spanInput: $spanInput) {_id}
   }`,
   //remove:gql``,
@@ -255,12 +255,14 @@ export const SPAN_QUERIES={
       data {
         _id
         project {
+        _id
           name
           status
         }
         name
         startPoint {
           placeName
+          chainNumber
           pointLocation {
             type
             coordinates
@@ -268,6 +270,7 @@ export const SPAN_QUERIES={
         }
         endPoint {
           placeName
+          chainNumber
           pointLocation { type coordinates }
         }
         status
@@ -292,8 +295,8 @@ export const SPAN_QUERIES={
   ${CHAPTER_FRAGMENT}
       ${PAGINATION_FRAGMENT}
     `,
-  update:gql` mutation UpdateSpan($id: ID!, $name: String, $startPoint: terminalInput, $endPoint: terminalInput, $status: SpanStatusEnum) {
-    updateSpan(_id: $id, name: $name, startPoint: $startPoint, endPoint: $endPoint, status: $status)
+  update:gql` mutation UpdateSpan($id: ID!, $spanInput: SpanInput) {
+    updateSpan(_id: $id, spanInput: $spanInput){_id}
   }`,
   addStaff:gql` mutation AddStaff($id: ID!, $userId: ID!) {
     addStaff(_id: $id, userID: $userId) { _id }
@@ -321,8 +324,11 @@ list:gql`query activities($page: Int, $limit: Int, $status: String, ) {
       _id
       WorkCategory
       adminRemark
+      locationDescription
+      returnReason
       remarks
       status
+      lineItems
       span {
         _id
         name
@@ -333,6 +339,7 @@ list:gql`query activities($page: Int, $limit: Int, $status: String, ) {
       }
       createdAt
       updatedAt
+      createdBy { _id name }
     }
   }
 }
