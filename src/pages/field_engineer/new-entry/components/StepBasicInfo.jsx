@@ -102,7 +102,7 @@ export default function StepBasicInfo({
             {activeSpan ? "Select chapter…" : "Select a span first…"}
           </option>
           {chapters.map((ch) => (
-            <option key={ch._id ?? ch.name} value={ch.name}>
+            <option key={ch._id} value={ch.name}>
               {ch.name}
             </option>
           ))}

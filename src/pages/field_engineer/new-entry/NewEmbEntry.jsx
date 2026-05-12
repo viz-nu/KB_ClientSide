@@ -6,6 +6,7 @@ import StepLineItems from "./components/StepLineItems.jsx";
 import StepSubmit from "./components/StepSubmit.jsx";
 import { useMutation, useQuery } from "@apollo/client";
 import { SPAN_QUERIES, EMB_ENTRY } from "../../../apollo/gql.js";
+import { deepClean } from "../../project_admin/builder/projectTemplates.js";
 export default function NewEmbEntry() {
   const navigate = useNavigate();
   const [createEmbEntry] = useMutation(EMB_ENTRY.create);
@@ -48,14 +49,7 @@ export default function NewEmbEntry() {
         locationDescription: form.locationDescription,
         remarks: form.remarks,
         WorkCategory: form.workCategory,
-        lineItems: form.lineItems.map(
-          (__typename, _id, measurements, ...rest) => ({
-            ...rest,
-            measurements: measurements.map(
-              ({ __typename, _id, ...rest }) => rest,
-            ),
-          }),
-        ),
+        lineItems: form.lineItems.map(li=>(deepClean(li))),
       };
       console.log("payload:", payload);
       setSaving(true);
@@ -102,17 +96,17 @@ export default function NewEmbEntry() {
   const removeLine = (id) => {
     set(
       "lineItems",
-      form.lineItems.filter((li) => li.id !== id),
+      form.lineItems.filter((li) => li._id !== id),
     );
   };
 
   const updateLine = (id, lineItem) => {
-    const existingLineItem = form.lineItems.find((li) => li.id === id);
+    const existingLineItem = form.lineItems.find((li) => li._id === id);
     if (!existingLineItem) return;
     set(
       "lineItems",
       form.lineItems.map((li) =>
-        li.id === id ? { ...existingLineItem, ...lineItem } : li,
+        li._id === id ? { ...existingLineItem, ...lineItem } : li,
       ),
     );
   };

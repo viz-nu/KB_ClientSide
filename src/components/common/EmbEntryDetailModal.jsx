@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { EmptyState, StatusBadge, Modal, AlertBanner, Tabs } from "./index";
+import PhotoThumb from "./photoThumb";
 
 // ─── Entry Detail Modal ──────────────────────────────────────────
 export default function EmbEntryDetailModal({
@@ -8,10 +9,10 @@ export default function EmbEntryDetailModal({
   isAdmin,
   onAction,
 }) {
-  const [tab, setTab] = useState("details");
+  const [tab, setTab] = useState("lineitems");
   const tabConfig = [
-    { id: "details", label: "Details", icon: "📋" },
     { id: "lineitems", label: "Line Items", icon: "💰" },
+    { id: "details", label: "Details", icon: "📋" },
     // { id: "audit", label: "Audit Log", icon: "🕐" },
   ];
 
@@ -63,7 +64,25 @@ export default function EmbEntryDetailModal({
       }
     >
       <Tabs tabs={tabConfig} active={tab} onChange={setTab} />
-
+      {tab === "lineitems" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {!entry.lineItems?.length ? (
+            <EmptyState
+              icon="💰"
+              title="No line items"
+              message="No line items were submitted with this entry."
+            />
+          ) : (
+            entry.lineItems.map((group, gi) => (
+              <div key={gi}>
+                {entry.lineItems.length > 1 && <div>Group {gi + 1}</div>}
+                {/* group itself IS the line item, group.measurements are the fields */}
+                <LineItemCard key={gi} item={group} />
+              </div>
+            ))
+          )}
+        </div>
+      )}
       {tab === "details" && (
         <div>
           <div
@@ -143,41 +162,7 @@ export default function EmbEntryDetailModal({
           )}
         </div>
       )}
-      {tab === "lineitems" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {!entry.lineItems?.length ? (
-            <EmptyState
-              icon="💰"
-              title="No line items"
-              message="No line items were submitted with this entry."
-            />
-          ) : (
-            entry.lineItems.map((group, gi) => (
-              <div key={gi}>
-                {entry.lineItems.length > 1 && (
-                  <div
-                    style={{
-                      fontSize: 10,
-                      color: "var(--text2)",
-                      textTransform: "uppercase",
-                      letterSpacing: ".07em",
-                      padding: "4px 10px",
-                      background: "rgba(255,255,255,.03)",
-                      borderRadius: 4,
-                      marginBottom: 6,
-                    }}
-                  >
-                    Group {gi + 1}
-                  </div>
-                )}
-                {group.measurements?.map((item) => (
-                  <LineItemCard key={item.id} item={item} />
-                ))}
-              </div>
-            ))
-          )}
-        </div>
-      )}
+
       {/* {tab === "audit" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {entry.auditLog?.map((log, i) => (
@@ -251,14 +236,38 @@ export default function EmbEntryDetailModal({
 function LineItemCard({ item }) {
   const hasDesc = item.description && item.description !== item.label;
   const meas = item.measurements ?? [];
-
   return (
-    <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', marginBottom: 8 }}>
+    <div
+      style={{
+        border: "1px solid var(--border)",
+        borderRadius: 8,
+        overflow: "hidden",
+        marginBottom: 8,
+      }}
+    >
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(255,255,255,.03)' }}>
-        <span style={{ fontSize: 13, fontWeight: 600 }}>{item.label || 'Unnamed item'}</span>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "8px 12px",
+          background: "rgba(255,255,255,.03)",
+        }}
+      >
+        <span style={{ fontSize: 13, fontWeight: 600 }}>
+          {item.label || "Unnamed item"}
+        </span>
         {item.code && (
-          <code style={{ fontSize: 10, padding: '2px 6px', background: 'rgba(255,255,255,.06)', borderRadius: 4, border: '1px solid var(--border)' }}>
+          <code
+            style={{
+              fontSize: 10,
+              padding: "2px 6px",
+              background: "rgba(255,255,255,.06)",
+              borderRadius: 4,
+              border: "1px solid var(--border)",
+            }}
+          >
             {item.code}
           </code>
         )}
@@ -266,7 +275,14 @@ function LineItemCard({ item }) {
 
       {/* Description */}
       {hasDesc && (
-        <div style={{ fontSize: 11, color: 'var(--text2)', padding: '5px 12px', borderBottom: '1px solid var(--border)' }}>
+        <div
+          style={{
+            fontSize: 11,
+            color: "var(--text2)",
+            padding: "5px 12px",
+            borderBottom: "1px solid var(--border)",
+          }}
+        >
           {item.description}
         </div>
       )}
@@ -274,7 +290,14 @@ function LineItemCard({ item }) {
       {/* Measurements */}
       <div>
         {meas.length === 0 ? (
-          <div style={{ padding: '8px 12px', fontSize: 12, color: 'var(--text2)', fontStyle: 'italic' }}>
+          <div
+            style={{
+              padding: "8px 12px",
+              fontSize: 12,
+              color: "var(--text2)",
+              fontStyle: "italic",
+            }}
+          >
             No measurements recorded
           </div>
         ) : (
@@ -284,7 +307,14 @@ function LineItemCard({ item }) {
 
       {/* Item-level remark */}
       {item.remarks ? (
-        <div style={{ fontSize: 11, color: 'var(--text2)', padding: '6px 12px', borderTop: '1px solid var(--border)' }}>
+        <div
+          style={{
+            fontSize: 11,
+            color: "var(--text2)",
+            padding: "6px 12px",
+            borderTop: "1px solid var(--border)",
+          }}
+        >
           Remark: {item.remarks}
         </div>
       ) : null}
@@ -293,51 +323,139 @@ function LineItemCard({ item }) {
 }
 
 function MeasurementRow({ m }) {
-  const isTable = m.type === 'table';
-
+  const isTable = m.type === "table";
   const value = () => {
-    if (m.fixedNumber !== undefined)
-      return <span style={{ color: 'var(--text2)', fontStyle: 'italic' }}>{m.fixedNumber} <small>(fixed)</small></span>;
-    if (m.fixedText)
-      return <span style={{ color: 'var(--text2)', fontStyle: 'italic' }}>"{m.fixedText}" <small>(fixed)</small></span>;
-    if (m.type === 'boolean')
-      return m.value == null ? '—'
-        : <span style={{ fontWeight: 600, color: m.value ? 'var(--green)' : 'var(--red)' }}>{m.value ? 'Yes' : 'No'}</span>;
-    if (m.type === 'multiselect' && Array.isArray(m.value))
+    if ("fixedNumber" in m)
       return (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, justifyContent: 'flex-end' }}>
-          {m.value.map(v => (
-            <span key={v} style={{ fontSize: 10, padding: '2px 7px', borderRadius: 20, background: 'rgba(255,255,255,.06)', border: '1px solid var(--border)' }}>{v}</span>
+        <span style={{ color: "var(--text2)", fontStyle: "italic" }}>
+          {m.fixedNumber} <small>(fixed)</small>
+        </span>
+      );
+    if (m.fixedText)
+      return (
+        <span style={{ color: "var(--text2)", fontStyle: "italic" }}>
+          "{m.fixedText}" <small>(fixed)</small>
+        </span>
+      );
+    if (m.type === "boolean")
+      return m.value == null ? (
+        "—"
+      ) : (
+        <span
+          style={{
+            fontWeight: 600,
+            color: m.value ? "var(--green)" : "var(--red)",
+          }}
+        >
+          {m.value ? "Yes" : "No"}
+        </span>
+      );
+    if (m.type === "multiselect" && Array.isArray(m.value))
+      return (
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 4,
+            justifyContent: "flex-end",
+          }}
+        >
+          {m.value.map((v) => (
+            <span
+              key={v}
+              style={{
+                fontSize: 10,
+                padding: "2px 7px",
+                borderRadius: 20,
+                background: "rgba(255,255,255,.06)",
+                border: "1px solid var(--border)",
+              }}
+            >
+              {v}
+            </span>
           ))}
         </div>
       );
-    if (m.value != null && m.value !== '')
-      return <span>{m.value}{m.unit ? <span style={{ fontSize: 10, color: 'var(--text2)', marginLeft: 3 }}>{m.unit}</span> : null}</span>;
-    return <span style={{ color: 'var(--text2)', fontStyle: 'italic' }}>—</span>;
+    if (m.value != null && m.value !== "")
+      return (
+        <span>
+          {m.value}
+          {m.unit ? (
+            <span
+              style={{ fontSize: 10, color: "var(--text2)", marginLeft: 3 }}
+            >
+              {m.unit}
+            </span>
+          ) : null}
+        </span>
+      );
+    return (
+      <span style={{ color: "var(--text2)", fontStyle: "italic" }}>—</span>
+    );
   };
 
   if (isTable) {
     return (
-      <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ fontSize: 11, color: 'var(--text2)', marginBottom: 6 }}>{m.label}</div>
+      <div
+        style={{ padding: "8px 12px", borderBottom: "1px solid var(--border)" }}
+      >
+        <div style={{ fontSize: 11, color: "var(--text2)", marginBottom: 6 }}>
+          {m.label}
+        </div>
         <TableValue m={m} />
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, padding: '7px 12px', borderBottom: '1px solid var(--border)' }}>
+    <div
+      style={{
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        gap: 12,
+        padding: "7px 12px",
+        borderBottom: "1px solid var(--border)",
+      }}
+    >
       <div>
-        <div style={{ fontSize: 12, color: 'var(--text2)' }}>
+        <div style={{ fontSize: 12, color: "var(--text2)" }}>
           {m.label}
-          {m.unit && <span style={{ fontSize: 10, color: 'var(--text3)', marginLeft: 4 }}>({m.unit})</span>}
+          {m.unit && (
+            <span
+              style={{ fontSize: 10, color: "var(--text3)", marginLeft: 4 }}
+            >
+              ({m.unit})
+            </span>
+          )}
         </div>
-        <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 1 }}>{m.type}</div>
+        <div style={{ fontSize: 10, color: "var(--text3)", marginTop: 1 }}>
+          {m.type}
+        </div>
         {m.requiresPhoto && m.photos?.length > 0 && (
-          <div style={{ fontSize: 10, color: 'var(--accent)', marginTop: 3 }}>📷 {m.photos.length} photo{m.photos.length > 1 ? 's' : ''}</div>
+          <div style={{ marginTop: 8 }}>
+            <div
+              style={{ fontSize: 10, color: "var(--text2)", marginBottom: 6 }}
+            >
+              📷 {m.photos.length} photo{m.photos.length > 1 ? "s" : ""}
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {m.photos.map((p) => (
+                <PhotoThumb key={p.id} photo={p} />
+              ))}
+            </div>
+          </div>
         )}
       </div>
-      <div style={{ fontSize: 12, fontWeight: 500, textAlign: 'right', flexShrink: 0, maxWidth: 200 }}>
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 500,
+          textAlign: "right",
+          flexShrink: 0,
+          maxWidth: 200,
+        }}
+      >
         {value()}
       </div>
     </div>
@@ -345,25 +463,49 @@ function MeasurementRow({ m }) {
 }
 
 function TableValue({ m }) {
-  if (!m.value?.length) return <span style={{ fontSize: 11, color: 'var(--text2)', fontStyle: 'italic' }}>no rows</span>;
+  if (!m.value?.length)
+    return (
+      <span
+        style={{ fontSize: 11, color: "var(--text2)", fontStyle: "italic" }}
+      >
+        no rows
+      </span>
+    );
   return (
     <div className="table-wrap" style={{ margin: 0 }}>
       <table style={{ fontSize: 11 }}>
         <thead>
-          <tr>{m.columns.map(c => <th key={c.key}>{c.label}</th>)}</tr>
+          <tr>
+            {m.columns.map((c) => (
+              <th key={c.key}>{c.label}</th>
+            ))}
+          </tr>
         </thead>
         <tbody>
           {m.value.map((row, i) => (
             <tr key={i}>
-              {m.columns.map(c => (
+              {m.columns.map((c) => (
                 <td key={c.key}>
-                  {Array.isArray(row[c.key])
-                    ? <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-                        {row[c.key].map(v => (
-                          <span key={v} style={{ fontSize: 10, padding: '1px 6px', borderRadius: 20, background: 'rgba(255,255,255,.06)', border: '1px solid var(--border)' }}>{v}</span>
-                        ))}
-                      </div>
-                    : row[c.key] ?? '—'}
+                  {Array.isArray(row[c.key]) ? (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
+                      {row[c.key].map((v) => (
+                        <span
+                          key={v}
+                          style={{
+                            fontSize: 10,
+                            padding: "1px 6px",
+                            borderRadius: 20,
+                            background: "rgba(255,255,255,.06)",
+                            border: "1px solid var(--border)",
+                          }}
+                        >
+                          {v}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    (row[c.key] ?? "—")
+                  )}
                 </td>
               ))}
             </tr>

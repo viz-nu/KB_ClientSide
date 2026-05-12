@@ -24,7 +24,7 @@ export default function LineItemCard({
 
         return (
           <div
-            key={li.id}
+            key={li._id}
             style={{
               background: "rgba(255,255,255,.02)",
               border: "1px solid var(--border)",
@@ -91,7 +91,7 @@ export default function LineItemCard({
               </div>
               <button
                 className="btn btn-danger btn-sm"
-                onClick={() => removeLine(li.id)}
+                onClick={() => removeLine(li._id)}
                 style={{ padding: "4px 10px", fontSize: 11 }}
               >
                 ✕ Remove
@@ -125,13 +125,13 @@ export default function LineItemCard({
                           (item) => item.label === e.target.value,
                         );
                         setSelectedItem(item);
-                        updateLine(li.id, { ...item, label: item.label });
+                        updateLine(li._id, { ...item, label: item.label });
                       }}
                       style={{ flex: 1 }}
                     >
                       <option value="">Select item…</option>
                       {(activeChapter?.items || []).map((item) => (
-                        <option key={item.label} value={item.label}>
+                        <option key={item._id} value={item.label}>
                           {item.label} - {item.code}
                         </option>
                       ))}
@@ -259,7 +259,7 @@ export default function LineItemCard({
                     >
                       {normalDims.map((dim) => (
                         <div
-                          key={dim.label}
+                          key={dim._id}
                           style={
                             dim.type === "multiselect" || dim.type === "table"
                               ? { gridColumn: "1 / -1" }
@@ -270,7 +270,7 @@ export default function LineItemCard({
                             dim={dim}
                             value={dim.value}
                             onChange={(val) =>
-                              updateLine(li.id, {
+                              updateLine(li._id, {
                                 measurements: li.measurements.map((m) =>
                                   m.label === dim.label
                                     ? { ...m, value: val }
@@ -299,7 +299,7 @@ export default function LineItemCard({
                           dim={dim}
                           value={dim.value}
                           onChange={(val) =>
-                            updateLine(li.id, {
+                            updateLine(li._id, {
                               measurements: li.measurements.map((m) =>
                                 m.label === dim.label
                                   ? { ...m, value: val }
@@ -327,7 +327,7 @@ export default function LineItemCard({
                           value={dim.value}
                           photos={dim?.photos ?? []}
                           onChange={(val, photos) =>
-                            updateLine(li.id, {
+                            updateLine(li._id, {
                               measurements: li.measurements.map((m) =>
                                 m.label === dim.label
                                   ? { ...m, value: val, photos }
