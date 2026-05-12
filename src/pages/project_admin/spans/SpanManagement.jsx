@@ -2,16 +2,12 @@ import { useState } from "react";
 import {
   PageHeader,
   ConfirmDialog,
-  FormField,
   EmptyState,
-  AlertBanner,
-  Tabs,
   Spinner,
 } from "../../../components/common/index.jsx";
 import {
   PROJECT_QUERIES,
   SPAN_QUERIES,
-  USER_QUERIES,
 } from "../../../apollo/gql.js";
 import { useMutation, useQuery } from "@apollo/client";
 import { SpanDetail } from "./components/spanDetails.jsx";

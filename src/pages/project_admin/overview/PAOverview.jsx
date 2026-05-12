@@ -1,10 +1,8 @@
-import { useAuth } from '../../../hooks/useAuth.js';
 import { MOCK_ENTRIES, CHAPTERS_N } from '../../../constants/scheduleN.js';
 import {StatCard, PageHeader, EmptyState, StatusBadge, } from '../../../components/common/index.jsx';
 
 // ─── PA Overview ────────────────────────────────────────────────
 export default function PAOverview() {
-  const { user } = useAuth();
   const entries = MOCK_ENTRIES;
   let stats={total: 0,pending: 0,approved: 0,rejected: 0};
   entries.forEach(e => {
