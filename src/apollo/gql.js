@@ -246,7 +246,7 @@ get:gql`
 }
 
 export const SPAN_QUERIES={
-  create:gql`mutation createSpan($spanInput: SpanInput) {
+  create:gql`mutation createSpan($spanInput: SpanInput!) {
     createSpan(spanInput: $spanInput) {_id}
   }`,
   //remove:gql``,
@@ -295,7 +295,7 @@ export const SPAN_QUERIES={
   ${CHAPTER_FRAGMENT}
       ${PAGINATION_FRAGMENT}
     `,
-  update:gql` mutation UpdateSpan($id: ID!, $spanInput: SpanInput) {
+  update:gql` mutation UpdateSpan($id: ID!, $spanInput: SpanInput!) {
     updateSpan(_id: $id, spanInput: $spanInput){_id}
   }`,
   addStaff:gql` mutation AddStaff($id: ID!, $userId: ID!) {
