@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { FormField } from "../../../components/common";
-import OptionsEditor from "./OptionsEditor";
-import ColumnsEditor from "./ColumnsEditor";
-import { FIELD_TYPES } from "./projectTemplates.js";
+import { FormField } from "../../../../../components/common/index.jsx";
+import OptionsEditor from "./OptionsEditor.jsx";
+import ColumnsEditor from "./ColumnsEditor.jsx";
+import { FIELD_TYPES } from "../../projectTemplates.js";
 
 export default function MeasurementFieldEditor({
   m,
@@ -184,7 +184,9 @@ export default function MeasurementFieldEditor({
               value={m.fixedNumber ?? m.fixedText ?? ""}
               placeholder={m.type === "number" ? 0 : "Constant"}
               onChange={(e) => {
-                let type = m.type, key, value;
+                let type = m.type,
+                  key,
+                  value;
                 switch (type) {
                   case "number":
                     key = "fixedNumber";

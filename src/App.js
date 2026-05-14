@@ -24,7 +24,8 @@ import FEDashboard from './pages/field_engineer/dashboard/FEDashboard.jsx';
 import MyEntries from './pages/field_engineer/entries/MyEntries.jsx';
 
 import NewEmbEntry from './pages/field_engineer/new-entry/NewEmbEntry.jsx';
-import ProjectManagement from './pages/project_admin/builder/ProjectBuilder.jsx';
+import ProjectManagement from './pages/project_admin/projects/Projectmanagement.jsx';
+
 
 function AppLayout() {
   return (

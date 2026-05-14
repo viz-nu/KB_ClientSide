@@ -6,7 +6,7 @@ import StepLineItems from "./components/StepLineItems.jsx";
 import StepSubmit from "./components/StepSubmit.jsx";
 import { useMutation, useQuery } from "@apollo/client";
 import { SPAN_QUERIES, EMB_ENTRY } from "../../../apollo/gql.js";
-import { deepClean } from "../../project_admin/builder/projectTemplates.js";
+import { deepClean } from "../../../utils/helpers.js";
 export default function NewEmbEntry() {
   const navigate = useNavigate();
   const [createEmbEntry] = useMutation(EMB_ENTRY.create);
@@ -239,15 +239,6 @@ export default function NewEmbEntry() {
             )}
             {step === 3 && (
               <>
-                <button
-                  className="btn btn-outline"
-                  onClick={async () => {
-                    await handleSubmit(true);
-                  }}
-                  disabled={saving}
-                >
-                  Save as Draft
-                </button>
                 <button
                   className="btn btn-primary"
                   onClick={async () => {

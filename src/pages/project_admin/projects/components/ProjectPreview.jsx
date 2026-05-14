@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { PageHeader, StatCard } from '../../../components/common';
-import { FIELD_TYPES } from './projectTemplates.js';
+import { PageHeader, StatCard } from '../../../../components/common/index.jsx';
+import { FIELD_TYPES } from '../projectTemplates.js';
 
-export default function ProjectPreview({ project: p, onBack, onEdit }) {
+export const ProjectPreview = ({ project: p, onBack, onEdit }) => {
   const [activeChId, setActCh] = useState(p.chapters[0]?.id || null);
   const activeCh    = p.chapters.find(c => c.id === activeChId);
   const totalItems  = p.chapters.reduce((s,c) => s + c.items.length, 0);

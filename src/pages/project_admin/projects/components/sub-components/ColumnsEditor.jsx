@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { FIELD_TYPES, newColumn } from "./projectTemplates.js";
-import OptionsEditor from "./OptionsEditor";
+import { FIELD_TYPES, newColumn } from "../../projectTemplates.js";
+import OptionsEditor from "./OptionsEditor.jsx";
 
 const MAX_DEPTH = 3;
 

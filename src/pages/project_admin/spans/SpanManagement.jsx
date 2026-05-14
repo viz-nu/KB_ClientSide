@@ -10,18 +10,23 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 import { PROJECT_QUERIES, SPAN_QUERIES } from "../../../apollo/gql.js";
-import { deepClean } from "../builder/projectTemplates.js";
+import { deepClean } from "../../../utils/helpers.js";
 
-import { SpanList   } from "./components/listSpan.jsx";
+import { SpanList } from "./components/listSpan.jsx";
 import { CreateSpan } from "./components/createSpan.jsx";
 import { SpanDetail } from "./components/spanDetails.jsx";
 import { UpdateSpan } from "./components/updateSpan.jsx";
 
 // ── views ──────────────────────────────────────────────────────────
-const VIEWS = { LIST: "list", CREATE: "create", DETAIL: "detail", UPDATE: "update" };
+const VIEWS = {
+  LIST: "list",
+  CREATE: "create",
+  DETAIL: "detail",
+  UPDATE: "update",
+};
 
 export default function SpanManagement() {
-  const [view,       setView]  = useState(VIEWS.LIST);
+  const [view, setView] = useState(VIEWS.LIST);
   const [activeSpan, setActive] = useState(null);
 
   // ── data ──────────────────────────────────────────────────────
@@ -42,36 +47,48 @@ export default function SpanManagement() {
   const [createSpan] = useMutation(SPAN_QUERIES.create);
   const [updateSpan] = useMutation(SPAN_QUERIES.update);
 
-  const spans    = spansData?.spans?.data    ?? [];
+  const spans = spansData?.spans?.data ?? [];
   const projects = projectsData?.projects?.data ?? [];
 
   // ── navigation helpers ────────────────────────────────────────
-  const goList   = ()  => { setActive(null); setView(VIEWS.LIST);   };
-  const goCreate = ()  => {                  setView(VIEWS.CREATE);  };
-  const goDetail = (s) => { setActive(s);    setView(VIEWS.DETAIL);  };
-  const goUpdate = (s) => { setActive(JSON.parse(JSON.stringify(s))); setView(VIEWS.UPDATE); };
+  const goList = () => {
+    setActive(null);
+    setView(VIEWS.LIST);
+  };
+  const goCreate = () => {
+    setView(VIEWS.CREATE);
+  };
+  const goDetail = (s) => {
+    setActive(s);
+    setView(VIEWS.DETAIL);
+  };
+  const goUpdate = (s) => {
+    setActive(JSON.parse(JSON.stringify(s)));
+    setView(VIEWS.UPDATE);
+  };
 
   // ── mutations ─────────────────────────────────────────────────
   const handleCreate = async (span) => {
-    const cleaned = deepClean(span);
-    const spanInput = buildSpanInput(cleaned);
-    spanInput.project = cleaned.projectId;
-
+    const spanInput = buildSpanInput(span);
     await createSpan({
       variables: { spanInput },
-      update(cache) { cache.evict({ fieldName: "spans" }); cache.gc(); },
+      update(cache) {
+        cache.evict({ fieldName: "spans" });
+        cache.gc();
+      },
     });
     spansRefetch();
     goList();
   };
 
   const handleUpdate = async (span) => {
-    const cleaned = deepClean(span);
-    const spanInput = buildSpanInput(cleaned);
-
+    const spanInput = buildSpanInput(span);
     await updateSpan({
       variables: { id: span._id, spanInput },
-      update(cache) { cache.evict({ fieldName: "spans" }); cache.gc(); },
+      update(cache) {
+        cache.evict({ fieldName: "spans" });
+        cache.gc();
+      },
     });
     spansRefetch();
     goList();
@@ -135,7 +152,7 @@ export default function SpanManagement() {
 function buildSpanInput(span) {
   return {
     name: span.name,
-    chapters: span.chapters,
+    chapters: span.chapters.map(({_id}) => _id),
     startPoint: {
       placeName: span.startPoint.placeName,
       chainNumber: Number(span.startPoint.chainNumber),
@@ -154,7 +171,7 @@ function buildSpanInput(span) {
     },
     Vault: {
       allotedBudjet: span.Vault.allotedBudjet,
-      spentBudjet:   span.Vault.spentBudjet,
+      spentBudjet: span.Vault.spentBudjet,
     },
   };
 }
