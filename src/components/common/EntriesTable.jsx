@@ -1,6 +1,6 @@
-import { StatusBadge } from "../../../../components/common/index.jsx";
+import { StatusBadge } from "./index.jsx";
 
-export default function EntriesTable({ filtered, setSelected }) {
+export default function EntriesTable({ filtered, setSelected, selectionDisabled = false }) {
   return (
     <table>
       <thead>
@@ -31,6 +31,7 @@ export default function EntriesTable({ filtered, setSelected }) {
                   gap: 2,
                 }}
                 onClick={() => setSelected(e)}
+                disabled={selectionDisabled}
               >
                 <span
                   style={{
@@ -104,6 +105,7 @@ export default function EntriesTable({ filtered, setSelected }) {
             <td>
               <button
                 className="btn btn-outline btn-sm"
+                disabled={selectionDisabled}
                 onClick={() => setSelected(e)}
               >
                 View

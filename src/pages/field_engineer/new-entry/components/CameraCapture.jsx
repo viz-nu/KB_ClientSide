@@ -1,356 +1,163 @@
 import React, { useRef, useState, useEffect } from "react";
 
-export default function CameraCapture({
-  photos = [],
-  setPhotos,
-  fieldLabel = "Photos",
-}) {
+export default function CameraCapture({ photos = [], setPhotos, fieldLabel = "Photos" }) {
   const videoRef = useRef(null);
   const [capturing, setCapturing] = useState(false);
   const [error, setError] = useState("");
   const [cameraReady, setCameraReady] = useState(false);
 
-
-
   const startCamera = async () => {
     setCapturing(true);
     setError("");
     setCameraReady(false);
-
     try {
-      if (!navigator.mediaDevices?.getUserMedia) {
-        throw new Error("getUserMedia is not supported in this browser");
-      }
-
-      const constraints = {
-        video: {
-          facingMode: "environment",
-        },
-      };
-
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      if (!videoRef.current)throw new Error("Video element not found");
+      if (!navigator.mediaDevices?.getUserMedia) throw new Error("Camera not supported in this browser");
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      if (!videoRef.current) throw new Error("Video element not found");
       videoRef.current.srcObject = stream;
       videoRef.current.onloadedmetadata = async () => {
         try {
           await videoRef.current.play();
           setCameraReady(true);
-        } catch (playErr) {
-          console.error("video.play() failed:", playErr);
-          setError(`Unable to play camera preview: ${playErr.message}`);
+        } catch (e) {
+          setError(`Cannot play camera: ${e.message}`);
         }
       };
     } catch (err) {
-      console.error("startCamera() failed:", err);
-      setError(`Unable to access camera: ${err.message}`);
+      setError(`Camera access denied: ${err.message}`);
       setCapturing(false);
     }
   };
 
-  /**
-   * Stop camera
-   */
   const stopCamera = () => {
-    const stream = videoRef.current?.srcObject;
-    if (stream) {
-      const tracks = stream.getTracks();
-      tracks.forEach((track) => {
-        track.stop();
-      });
-    }
-    if (videoRef.current)  videoRef.current.srcObject = null;
+    videoRef.current?.srcObject?.getTracks().forEach((t) => t.stop());
+    if (videoRef.current) videoRef.current.srcObject = null;
     setCapturing(false);
     setCameraReady(false);
   };
 
-  /**
-   * Capture photo + GPS
-   */
   const capturePhoto = () => {
-    if (!videoRef.current) {
-      setError("Video element not available.");
-      return;
-    }
-
-    if (!cameraReady) {
-      setError("Camera not ready yet.");
-      return;
-    }
-
-    const width = videoRef.current.videoWidth;
-    const height = videoRef.current.videoHeight;
-
-
-    if (!width || !height) {
-      setError("Camera preview not initialized.");
-      return;
-    }
+    if (!cameraReady || !videoRef.current) return;
+    const { videoWidth: w, videoHeight: h } = videoRef.current;
+    if (!w || !h) { setError("Camera not ready."); return; }
     navigator.geolocation.getCurrentPosition(
       (loc) => {
-        try {
-          const canvas = document.createElement("canvas");
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          if (!ctx) {
-            throw new Error("Unable to get canvas context");
-          }
-          ctx.drawImage(videoRef.current, 0, 0, width, height);
-          const imageUrl = canvas.toDataURL("image/jpeg", 0.92);
-          const newPhoto = {
-            id: `${Date.now()}_${Math.random()
-              .toString(36)
-              .slice(2)}`,
-            url: imageUrl,
-            caption: "",
-            pointLocation: {
-              type: "Point",
-              coordinates: [
-                loc.coords.longitude,
-                loc.coords.latitude,
-              ],
-            },
-            capturedAt: new Date().toISOString(),
-          }
-          setPhotos([...photos, newPhoto]);
-          setError("");
-        } catch (err) {
-          console.error("Capture processing failed:", err);
-          setError(`Capture failed: ${err.message}`);
-        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(videoRef.current, 0, 0, w, h);
+        setPhotos([...photos, {
+          id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
+          url: canvas.toDataURL("image/jpeg", 0.92),
+          caption: "",
+          pointLocation: { type: "Point", coordinates: [loc.coords.longitude, loc.coords.latitude] },
+          capturedAt: new Date().toISOString(),
+        }]);
+        setError("");
       },
-      (geoErr) => {
-        console.error("Geolocation failed:", geoErr);
-        setError(`GPS failed: ${geoErr.message}`);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      }
+      (e) => setError(`GPS failed: ${e.message}`),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   };
 
-  /**
-   * Remove photo
-   */
-  const removePhoto = (id) => {
-    const updated = photos.filter((p) => p.id !== id);
-    setPhotos(updated);
-  };
+  const removePhoto = (id) => setPhotos(photos.filter((p) => p.id !== id));
+  const updateCaption = (id, caption) => setPhotos(photos.map((p) => p.id === id ? { ...p, caption } : p));
 
-  /**
-   * Update caption
-   */
-  const updateCaption = (id, caption) => {
-
-    const updated = photos.map((p) =>
-      p.id === id ? { ...p, caption } : p
-    );
-
-    setPhotos(updated);
-  };
-
-  /**
-   * Debug photos prop changes
-   */
-  useEffect(() => {
-  }, [photos]);
-
-  /**
-   * Cleanup on unmount
-   */
-  useEffect(() => {
-    return () => {
-      stopCamera();
-    };
-  }, []);
+  useEffect(() => () => stopCamera(), []);
 
   return (
-    <div>
-      <div
-        style={{
-          borderRadius: 10,
-          border: "1px solid var(--border)",
-          background: "rgba(255,255,255,.03)",
-          marginBottom: 12,
-          overflow: "hidden",
-        }}
-      >
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {/* Camera viewer */}
+      <div style={{ borderRadius: 14, border: "1.5px solid var(--border)", overflow: "hidden", background: "rgba(0,0,0,.6)" }}>
         {!capturing ? (
-          <div style={{ padding: 20, textAlign: "center" }}>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={startCamera}
-            >
-              📷 Start Camera
-            </button>
-            <div
-              style={{
-                fontSize: 11,
-                color: "var(--text3)",
-                marginTop: 8,
-              }}
-            >
-              Rear camera · GPS-tagged capture
-            </div>
-          </div>
+          <button
+            type="button"
+            onClick={startCamera}
+            style={{
+              width: "100%",
+              padding: "20px 0",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 6,
+              color: "var(--text2)",
+            }}
+          >
+            <span style={{ fontSize: 32 }}>📷</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--accent)" }}>Open Camera</span>
+            <span style={{ fontSize: 11, color: "var(--text3)" }}>Rear camera · GPS-tagged</span>
+          </button>
         ) : (
           <div style={{ position: "relative" }}>
             <video
               ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              style={{
-                width: "100%",
-                maxHeight: 280,
-                objectFit: "cover",
-                display: "block",
-                background: "#000",
-              }}
+              autoPlay playsInline muted
+              style={{ width: "100%", maxHeight: 260, objectFit: "cover", display: "block", background: "#000" }}
             />
-
             {!cameraReady && (
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: "rgba(0,0,0,.6)",
-                  color: "#fff",
-                }}
-              >
-                Starting camera...
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,.65)", color: "#fff", fontSize: 13 }}>
+                Starting camera…
               </div>
             )}
-
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                justifyContent: "center",
-                padding: "10px 14px",
-                background: "rgba(0,0,0,.45)",
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                right: 0,
-              }}
-            >
+            {/* Bottom action bar */}
+            <div style={{ display: "flex", gap: 8, padding: "10px 12px", background: "rgba(0,0,0,.5)", position: "absolute", bottom: 0, left: 0, right: 0, justifyContent: "space-between", alignItems: "center" }}>
               <button
                 type="button"
-                className="btn btn-success"
+                onClick={stopCamera}
+                style={{ padding: "8px 14px", fontSize: 12, borderRadius: 8, border: "1px solid rgba(255,255,255,.2)", background: "rgba(255,255,255,.08)", color: "#fff", cursor: "pointer" }}
+              >
+                ✕ Close
+              </button>
+              <button
+                type="button"
                 onClick={capturePhoto}
                 disabled={!cameraReady}
+                style={{
+                  padding: "10px 22px", fontSize: 13, fontWeight: 700,
+                  borderRadius: 10, border: "none",
+                  background: cameraReady ? "var(--accent)" : "rgba(255,255,255,.15)",
+                  color: cameraReady ? "var(--navy)" : "rgba(255,255,255,.4)",
+                  cursor: cameraReady ? "pointer" : "default",
+                  transition: "all .15s",
+                }}
               >
-                📸 {cameraReady ? "Capture + GPS" : "Initializing..."}
-              </button>
-
-              <button
-                type="button"
-                className="btn btn-outline btn-sm"
-                onClick={stopCamera}
-              >
-                ✕ Stop
+                📸 {cameraReady ? "Capture + GPS" : "Initializing…"}
               </button>
             </div>
           </div>
         )}
-
         {error && (
-          <div
-            style={{
-              color: "var(--red)",
-              fontSize: 12,
-              padding: "8px 14px",
-              borderTop: "1px solid var(--border)",
-            }}
-          >
+          <div style={{ color: "var(--red)", fontSize: 12, padding: "8px 14px", borderTop: "1px solid var(--border)", background: "rgba(239,68,68,.07)" }}>
             ⚠ {error}
           </div>
         )}
       </div>
 
+      {/* Photo thumbnails */}
       {photos.length > 0 && (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-          }}
-        >
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {photos.map((p) => (
-            <div
-              key={p.id}
-              style={{
-                display: "flex",
-                gap: 10,
-                alignItems: "flex-start",
-                background: "rgba(255,255,255,.04)",
-                border: "1px solid var(--border)",
-                borderRadius: 8,
-                padding: "8px 10px",
-              }}
-            >
-              <div
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 6,
-                  overflow: "hidden",
-                  flexShrink: 0,
-                  border: "1px solid var(--border)",
-                  background: "#000",
-                }}
-              >
-                <img
-                  src={p.url}
-                  alt={p.caption || "capture"}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
-                />
+            <div key={p.id} style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(255,255,255,.04)", border: "1px solid var(--border)", borderRadius: 10, padding: "8px 10px" }}>
+              <div style={{ width: 52, height: 52, borderRadius: 8, overflow: "hidden", flexShrink: 0, border: "1px solid var(--border)", background: "#000" }}>
+                <img src={p.url} alt={p.caption || "capture"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </div>
-
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <input
                   className="form-control"
                   value={p.caption}
-                  onChange={(e) =>
-                    updateCaption(p.id, e.target.value)
-                  }
-                  placeholder="Add caption (optional)…"
+                  onChange={(e) => updateCaption(p.id, e.target.value)}
+                  placeholder="Caption (optional)…"
+                  style={{ fontSize: 13 }}
                 />
-
-                <div
-                  style={{
-                    marginTop: 4,
-                    fontSize: 10,
-                    color: "var(--text3)",
-                  }}
-                >
-                  {p.pointLocation?.coordinates && (
-                    <span>
-                      📍 {p.pointLocation.coordinates[1].toFixed(5)},{" "}
-                      {p.pointLocation.coordinates[0].toFixed(5)}
-                    </span>
-                  )}
-                </div>
+                {p.pointLocation?.coordinates && (
+                  <div style={{ marginTop: 4, fontSize: 10, color: "var(--text3)" }}>
+                    📍 {p.pointLocation.coordinates[1].toFixed(5)}, {p.pointLocation.coordinates[0].toFixed(5)}
+                  </div>
+                )}
               </div>
-
-              <button
-                type="button"
-                onClick={() => removePhoto(p.id)}
-              >
-                ✕
-              </button>
+              <button type="button" onClick={() => removePhoto(p.id)} style={{ background: "none", border: "none", color: "var(--text3)", fontSize: 16, cursor: "pointer", padding: 4, flexShrink: 0 }}>✕</button>
             </div>
           ))}
         </div>

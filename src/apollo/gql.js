@@ -181,6 +181,7 @@ export const SPAN_QUERIES = {
     project {
       _id
       name
+      code
     }
     name
     startPoint {
@@ -237,6 +238,7 @@ export const SPAN_QUERIES = {
         _id
           name
           status
+          code
         }
         name
         startPoint {
