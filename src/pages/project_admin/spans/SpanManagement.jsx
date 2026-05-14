@@ -276,7 +276,7 @@ function SpanCard({ span: s, project, onView, onEdit, onDelete }) {
             <code
               style={{ fontSize: 10, color: "var(--accent)", fontWeight: 600 }}
             >
-              {project.code}
+              {project.name}
             </code>
           )}
         </div>
@@ -288,7 +288,7 @@ function SpanCard({ span: s, project, onView, onEdit, onDelete }) {
             marginBottom: 2,
           }}
         >
-          {s.name}
+          {s.name + " - " + s.project.name}
         </div>
         {project && (
           <div style={{ fontSize: 11, color: "var(--text2)" }}>

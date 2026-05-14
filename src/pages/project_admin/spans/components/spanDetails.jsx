@@ -1,9 +1,12 @@
 // ═══════════════════════════════════════════════════════════════════
 // SPAN DETAIL — Read view
 // ═══════════════════════════════════════════════════════════════════
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { PROGRESS_STAGES, TYPE_META } from "../../../../constants/spanConstants.js";
+import {
+  PROGRESS_STAGES,
+  TYPE_META,
+} from "../../../../constants/spanConstants.js";
 import {
   PageHeader,
   Tabs,
@@ -15,8 +18,18 @@ import { useMutation, useQuery } from "@apollo/client";
 import { USER_QUERIES, SPAN_QUERIES } from "../../../../apollo/gql.js";
 
 // ═══════════════════════════════════════════════════════════════════
-export const SpanDetail = ({ span: s, projects, onBack, onEdit }) => {
+export const SpanDetail = ({ span, projects, onBack, onEdit }) => {
   const [tab, setTab] = useState("overview");
+  const {
+    data: spanData,
+    loading: spanLoading,
+    error: spanError,
+    refetch: refetchSpan,
+  } = useQuery(SPAN_QUERIES.get, {
+    variables: { id: span._id },
+    fetchPolicy: "cache-and-network",
+  });
+  const s = spanData?.span ?? span;
   const project = projects.find((p) => p._id === s.projectId);
   const stage =
     PROGRESS_STAGES.find((p) => p.value === s.status) || PROGRESS_STAGES[0];
@@ -59,553 +72,600 @@ export const SpanDetail = ({ span: s, projects, onBack, onEdit }) => {
         }
       />
 
-      {/* Status banner */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: "10px 16px",
-          borderRadius: 8,
-          marginBottom: 20,
-          background: stage.color + "12",
-          border: `1px solid ${stage.color}44`,
-        }}
-      >
-        <span style={{ fontSize: 16 }}>
-          {{ PENDING: "⏳", IN_PROGRESS: "🔄", COMPLETED: "✅" }[s.status]}
-        </span>
-        <span style={{ fontWeight: 700, color: stage.color, fontSize: 13 }}>
-          {stage.label}
-        </span>
-        {project && (
-          <span
-            style={{ fontSize: 12, color: "var(--text2)", marginLeft: "auto" }}
+      {spanError && <AlertBanner type="error" message={spanError.message} />}
+      {spanLoading && <Spinner size={24} />}
+      {spanData && (
+        <div>
+          {/* Status banner */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "10px 16px",
+              borderRadius: 8,
+              marginBottom: 20,
+              background: stage.color + "12",
+              border: `1px solid ${stage.color}44`,
+            }}
           >
-            Part of:{" "}
-            <strong style={{ color: "var(--text)" }}>{project.name}</strong>
-          </span>
-        )}
-      </div>
-
-      <Tabs tabs={tabConfig} active={tab} onChange={setTab} />
-
-      {/* ── Overview */}
-      {tab === "overview" && (
-        <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}
-        >
-          <div className="card">
-            <div className="card-title" style={{ marginBottom: 14 }}>
-              Span Details
-            </div>
-            {[
-              [
-                "ID",
-                <code key="id" style={{ fontSize: 11, color: "var(--accent)" }}>
-                  {s._id}
-                </code>,
-              ],
-              ["Name", s.name],
-              ["Project", s.project?.name || "—"],
-              [
-                "Status",
-                <span key="st" style={{ color: stage.color, fontWeight: 600 }}>
-                  ● {stage.label}
-                </span>,
-              ],
-              ["Work Items", `${s.chapters?.length || 0}`],
-              ["Created", s.createdAt],
-            ].map(([k, v]) => (
-              <div
-                key={k}
+            <span style={{ fontSize: 16 }}>
+              {{ PENDING: "⏳", IN_PROGRESS: "🔄", COMPLETED: "✅" }[s.status]}
+            </span>
+            <span style={{ fontWeight: 700, color: stage.color, fontSize: 13 }}>
+              {stage.label}
+            </span>
+            {project && (
+              <span
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "8px 0",
-                  borderBottom: "1px solid var(--border2)",
-                  fontSize: 13,
+                  fontSize: 12,
+                  color: "var(--text2)",
+                  marginLeft: "auto",
                 }}
               >
-                <span style={{ color: "var(--text2)", fontSize: 12 }}>{k}</span>
-                <span>{v}</span>
-              </div>
-            ))}
+                Part of:{" "}
+                <strong style={{ color: "var(--text)" }}>{project.name}</strong>
+              </span>
+            )}
           </div>
-          <div className="card">
-            <div className="card-title" style={{ marginBottom: 14 }}>
-              Budget Summary
-            </div>
+
+          <Tabs tabs={tabConfig} active={tab} onChange={setTab} />
+
+          {/* ── Overview */}
+          {tab === "overview" && (
             <div
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
-                gap: 10,
-                marginBottom: 14,
+                gap: 16,
               }}
             >
-              {[
-                [
-                  "Allotted",
-                  `₹${(s.Vault?.allotedBudjet || 0).toLocaleString("en-IN")}`,
-                  "var(--accent)",
-                ],
-                [
-                  "Spent",
-                  `₹${(s.Vault?.spentBudjet || 0).toLocaleString("en-IN")}`,
-                  "var(--text)",
-                ],
-                [
-                  "Remaining",
-                  `₹${((s.Vault?.allotedBudjet || 0) - (s.Vault?.spentBudjet || 0)).toLocaleString("en-IN")}`,
-                  (s.Vault?.allotedBudjet || 0) >= (s.Vault?.spentBudjet || 0)
-                    ? "var(--green)"
-                    : "var(--red)",
-                ],
-                ["Utilisation", `${spentPct}%`, barColor],
-              ].map(([l, v, c]) => (
+              <div className="card">
+                <div className="card-title" style={{ marginBottom: 14 }}>
+                  Span Details
+                </div>
+                {[
+                  [
+                    "ID",
+                    <code
+                      key="id"
+                      style={{ fontSize: 11, color: "var(--accent)" }}
+                    >
+                      {s._id}
+                    </code>,
+                  ],
+                  ["Name", s.name],
+                  ["Project", s.project?.name || "—"],
+                  [
+                    "Status",
+                    <span
+                      key="st"
+                      style={{ color: stage.color, fontWeight: 600 }}
+                    >
+                      ● {stage.label}
+                    </span>,
+                  ],
+                  ["Work Items", `${s.chapters?.length || 0}`],
+                  ["Created", s.createdAt],
+                ].map(([k, v]) => (
+                  <div
+                    key={k}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "8px 0",
+                      borderBottom: "1px solid var(--border2)",
+                      fontSize: 13,
+                    }}
+                  >
+                    <span style={{ color: "var(--text2)", fontSize: 12 }}>
+                      {k}
+                    </span>
+                    <span>{v}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="card">
+                <div className="card-title" style={{ marginBottom: 14 }}>
+                  Budget Summary
+                </div>
                 <div
-                  key={l}
                   style={{
-                    background: "rgba(255,255,255,.03)",
-                    padding: "10px 12px",
-                    borderRadius: 8,
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 10,
+                    marginBottom: 14,
+                  }}
+                >
+                  {[
+                    [
+                      "Allotted",
+                      `₹${(s.Vault?.allotedBudjet || 0).toLocaleString("en-IN")}`,
+                      "var(--accent)",
+                    ],
+                    [
+                      "Spent",
+                      `₹${(s.Vault?.spentBudjet || 0).toLocaleString("en-IN")}`,
+                      "var(--text)",
+                    ],
+                    [
+                      "Remaining",
+                      `₹${((s.Vault?.allotedBudjet || 0) - (s.Vault?.spentBudjet || 0)).toLocaleString("en-IN")}`,
+                      (s.Vault?.allotedBudjet || 0) >=
+                      (s.Vault?.spentBudjet || 0)
+                        ? "var(--green)"
+                        : "var(--red)",
+                    ],
+                    ["Utilisation", `${spentPct}%`, barColor],
+                  ].map(([l, v, c]) => (
+                    <div
+                      key={l}
+                      style={{
+                        background: "rgba(255,255,255,.03)",
+                        padding: "10px 12px",
+                        borderRadius: 8,
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: "var(--text3)",
+                          textTransform: "uppercase",
+                          letterSpacing: ".07em",
+                          marginBottom: 3,
+                        }}
+                      >
+                        {l}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 700,
+                          color: c,
+                          fontFamily: "monospace",
+                        }}
+                      >
+                        {v}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div
+                  style={{
+                    height: 6,
+                    background: "rgba(255,255,255,.08)",
+                    borderRadius: 3,
+                    overflow: "hidden",
                   }}
                 >
                   <div
                     style={{
-                      fontSize: 10,
-                      color: "var(--text3)",
-                      textTransform: "uppercase",
-                      letterSpacing: ".07em",
-                      marginBottom: 3,
+                      width: `${spentPct}%`,
+                      height: "100%",
+                      background: barColor,
+                      borderRadius: 3,
+                      transition: "width .4s",
                     }}
-                  >
-                    {l}
-                  </div>
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Route */}
+          {tab === "route" && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 16,
+              }}
+            >
+              {[
+                { key: "startPoint", label: "Start Point", icon: "🟢" },
+                { key: "endPoint", label: "End Point", icon: "🔴" },
+              ].map(({ key, label, icon }) => (
+                <div key={key} className="card">
                   <div
                     style={{
-                      fontSize: 14,
+                      fontFamily: "var(--font-head)",
                       fontWeight: 700,
-                      color: c,
-                      fontFamily: "monospace",
+                      fontSize: 15,
+                      marginBottom: 14,
                     }}
                   >
-                    {v}
+                    {icon} {label}
                   </div>
+                  {[
+                    ["Place Name", s[key].placeName || "—"],
+                    ["Latitude", s[key].pointLocation.coordinates[0] || "—"],
+                    ["Longitude", s[key].pointLocation.coordinates[1] || "—"],
+                  ].map(([l, v]) => (
+                    <div
+                      key={l}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        padding: "8px 0",
+                        borderBottom: "1px solid var(--border2)",
+                        fontSize: 13,
+                      }}
+                    >
+                      <span style={{ color: "var(--text2)", fontSize: 12 }}>
+                        {l}
+                      </span>
+                      <span
+                        style={{
+                          fontFamily:
+                            l !== "Place Name" ? "monospace" : "inherit",
+                        }}
+                      >
+                        {v}
+                      </span>
+                    </div>
+                  ))}
+                  {s[key].pointLocation.coordinates[0] &&
+                    s[key].pointLocation.coordinates[1] && (
+                      <a
+                        href={`https://www.google.com/maps?q=${s[key].pointLocation.coordinates[0]},${s[key].pointLocation.coordinates[1]}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn btn-outline btn-sm"
+                        style={{
+                          marginTop: 12,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          textDecoration: "none",
+                        }}
+                      >
+                        🗺️ Open in Maps
+                      </a>
+                    )}
                 </div>
               ))}
             </div>
-            <div
-              style={{
-                height: 6,
-                background: "rgba(255,255,255,.08)",
-                borderRadius: 3,
-                overflow: "hidden",
-              }}
-            >
+          )}
+
+          {/* ── Work Items */}
+          {/* ── Work Items */}
+          {tab === "workitems" && (
+            <div>
+              {s.chapters?.length > 0 ? (
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 16 }}
+                >
+                  {s.chapters.map((chapter) => (
+                    <div className="card" key={chapter._id}>
+                      {/* Chapter Header */}
+                      <div className="card-header">
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: 12,
+                              height: 12,
+                              borderRadius: "50%",
+                              background: chapter.color || "var(--accent)",
+                              flexShrink: 0,
+                            }}
+                          />
+                          <span className="card-title">{chapter.name}</span>
+                          <span
+                            style={{
+                              fontSize: 11,
+                              color: "var(--text3)",
+                              background: "rgba(255,255,255,.06)",
+                              border: "1px solid var(--border)",
+                              borderRadius: 12,
+                              padding: "2px 8px",
+                            }}
+                          >
+                            {chapter.items?.length ?? 0} item
+                            {chapter.items?.length !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Items */}
+                      {chapter.items?.length > 0 ? (
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 0,
+                          }}
+                        >
+                          {chapter.items.map((item, idx) => (
+                            <div
+                              key={item._id}
+                              style={{
+                                padding: "14px 20px",
+                                borderTop:
+                                  idx === 0
+                                    ? "none"
+                                    : "1px solid var(--border)",
+                              }}
+                            >
+                              {/* Item Row */}
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "flex-start",
+                                  gap: 12,
+                                  marginBottom:
+                                    item.measurements?.length > 0 ? 10 : 0,
+                                }}
+                              >
+                                <code
+                                  style={{
+                                    fontSize: 11,
+                                    color: chapter.color || "var(--accent)",
+                                    background: `${chapter.color || "var(--accent)"}18`,
+                                    border: `1px solid ${chapter.color || "var(--accent)"}33`,
+                                    borderRadius: 5,
+                                    padding: "2px 7px",
+                                    flexShrink: 0,
+                                    marginTop: 1,
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  {item.code}
+                                </code>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div
+                                    style={{
+                                      fontSize: 13,
+                                      fontWeight: 600,
+                                      color: "var(--text)",
+                                    }}
+                                  >
+                                    {item.label}
+                                  </div>
+                                  {item.description && (
+                                    <div
+                                      style={{
+                                        fontSize: 11,
+                                        color: "var(--text3)",
+                                        marginTop: 2,
+                                      }}
+                                    >
+                                      {item.description}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Measurements */}
+                              {item.measurements?.length > 0 && (
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    flexWrap: "wrap",
+                                    gap: 6,
+                                    paddingLeft: 4,
+                                  }}
+                                >
+                                  {item.measurements.map((m) => (
+                                    <MeasurementBadge key={m._id} m={m} />
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            padding: "20px",
+                            textAlign: "center",
+                            color: "var(--text3)",
+                            fontSize: 12,
+                          }}
+                        >
+                          No items in this chapter
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  icon="📦"
+                  title="No work items"
+                  message="No work items are assigned to this span."
+                />
+              )}
+            </div>
+          )}
+          {/* ── Vault */}
+          {tab === "vault" && (
+            <div className="card">
+              <div className="card-title" style={{ marginBottom: 16 }}>
+                💰 Vault Details
+              </div>
               <div
                 style={{
-                  width: `${spentPct}%`,
-                  height: "100%",
-                  background: barColor,
-                  borderRadius: 3,
-                  transition: "width .4s",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(180px,1fr))",
+                  gap: 12,
+                  marginBottom: 20,
                 }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+              >
+                {[
+                  [
+                    "Allotted Budget",
+                    `₹${(s.Vault?.allotedBudjet || 0).toLocaleString("en-IN")}`,
+                    "var(--accent)",
+                  ],
+                  [
+                    "Spent",
+                    `₹${(s.Vault?.spentBudjet || 0).toLocaleString("en-IN")}`,
+                    "var(--text)",
+                  ],
+                  [
+                    "Remaining",
+                    `₹${((s.Vault?.allotedBudjet || 0) - (s.Vault?.spentBudjet || 0)).toLocaleString("en-IN")}`,
+                    (s.Vault?.allotedBudjet || 0) >= (s.Vault?.spentBudjet || 0)
+                      ? "var(--green)"
+                      : "var(--red)",
+                  ],
+                  ["Utilisation", `${spentPct}%`, barColor],
+                ].map(([l, v, c]) => (
+                  <div
+                    key={l}
+                    style={{
+                      background: "rgba(255,255,255,.04)",
+                      padding: "14px 16px",
+                      borderRadius: 10,
+                      border: "1px solid var(--border)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 10,
+                        color: "var(--text3)",
+                        textTransform: "uppercase",
+                        letterSpacing: ".07em",
+                        marginBottom: 6,
+                      }}
+                    >
+                      {l}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 18,
+                        fontWeight: 800,
+                        color: c,
+                        fontFamily: "var(--font-head)",
+                      }}
+                    >
+                      {v}
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-      {/* ── Route */}
-      {tab === "route" && (
-        <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}
-        >
-          {[
-            { key: "startPoint", label: "Start Point", icon: "🟢" },
-            { key: "endPoint", label: "End Point", icon: "🔴" },
-          ].map(({ key, label, icon }) => (
-            <div key={key} className="card">
+              <div
+                style={{
+                  marginBottom: 8,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 12,
+                  color: "var(--text2)",
+                }}
+              >
+                <span>Budget utilisation</span>
+                <span style={{ color: barColor, fontWeight: 700 }}>
+                  {spentPct}%
+                </span>
+              </div>
+              <div
+                style={{
+                  height: 8,
+                  background: "rgba(255,255,255,.08)",
+                  borderRadius: 4,
+                  overflow: "hidden",
+                  marginBottom: 20,
+                }}
+              >
+                <div
+                  style={{
+                    width: `${spentPct}%`,
+                    height: "100%",
+                    background: barColor,
+                    borderRadius: 4,
+                    transition: "width .6s",
+                  }}
+                />
+              </div>
+
+              {/* Vault logs */}
               <div
                 style={{
                   fontFamily: "var(--font-head)",
                   fontWeight: 700,
-                  fontSize: 15,
-                  marginBottom: 14,
+                  fontSize: 14,
+                  marginBottom: 12,
                 }}
               >
-                {icon} {label}
+                Transaction Log
               </div>
-              {[
-                ["Place Name", s[key].placeName || "—"],
-                ["Latitude", s[key].pointLocation.coordinates[0] || "—"],
-                ["Longitude", s[key].pointLocation.coordinates[1] || "—"],
-              ].map(([l, v]) => (
-                <div
-                  key={l}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    padding: "8px 0",
-                    borderBottom: "1px solid var(--border2)",
-                    fontSize: 13,
-                  }}
-                >
-                  <span style={{ color: "var(--text2)", fontSize: 12 }}>
-                    {l}
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: l !== "Place Name" ? "monospace" : "inherit",
-                    }}
-                  >
-                    {v}
-                  </span>
-                </div>
-              ))}
-              {s[key].pointLocation.coordinates[0] &&
-                s[key].pointLocation.coordinates[1] && (
-                  <a
-                    href={`https://www.google.com/maps?q=${s[key].pointLocation.coordinates[0]},${s[key].pointLocation.coordinates[1]}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="btn btn-outline btn-sm"
-                    style={{
-                      marginTop: 12,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 6,
-                      textDecoration: "none",
-                    }}
-                  >
-                    🗺️ Open in Maps
-                  </a>
-                )}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ── Work Items */}
-      {/* ── Work Items */}
-      {tab === "workitems" && (
-        <div>
-          {s.chapters?.length > 0 ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {s.chapters.map((chapter) => (
-                <div className="card" key={chapter._id}>
-                  {/* Chapter Header */}
-                  <div className="card-header">
-                    <div
-                      style={{ display: "flex", alignItems: "center", gap: 10 }}
-                    >
-                      <div
-                        style={{
-                          width: 12,
-                          height: 12,
-                          borderRadius: "50%",
-                          background: chapter.color || "var(--accent)",
-                          flexShrink: 0,
-                        }}
-                      />
-                      <span className="card-title">{chapter.name}</span>
-                      <span
-                        style={{
-                          fontSize: 11,
-                          color: "var(--text3)",
-                          background: "rgba(255,255,255,.06)",
-                          border: "1px solid var(--border)",
-                          borderRadius: 12,
-                          padding: "2px 8px",
-                        }}
-                      >
-                        {chapter.items?.length ?? 0} item
-                        {chapter.items?.length !== 1 ? "s" : ""}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Items */}
-                  {chapter.items?.length > 0 ? (
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 0,
-                      }}
-                    >
-                      {chapter.items.map((item, idx) => (
-                        <div
-                          key={item._id}
-                          style={{
-                            padding: "14px 20px",
-                            borderTop:
-                              idx === 0 ? "none" : "1px solid var(--border)",
-                          }}
-                        >
-                          {/* Item Row */}
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "flex-start",
-                              gap: 12,
-                              marginBottom:
-                                item.measurements?.length > 0 ? 10 : 0,
-                            }}
-                          >
-                            <code
-                              style={{
-                                fontSize: 11,
-                                color: chapter.color || "var(--accent)",
-                                background: `${chapter.color || "var(--accent)"}18`,
-                                border: `1px solid ${chapter.color || "var(--accent)"}33`,
-                                borderRadius: 5,
-                                padding: "2px 7px",
-                                flexShrink: 0,
-                                marginTop: 1,
-                                fontWeight: 600,
-                              }}
-                            >
-                              {item.code}
-                            </code>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div
-                                style={{
-                                  fontSize: 13,
-                                  fontWeight: 600,
-                                  color: "var(--text)",
-                                }}
-                              >
-                                {item.label}
-                              </div>
-                              {item.description && (
-                                <div
-                                  style={{
-                                    fontSize: 11,
-                                    color: "var(--text3)",
-                                    marginTop: 2,
-                                  }}
-                                >
-                                  {item.description}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Measurements */}
-                          {item.measurements?.length > 0 && (
-                            <div
-                              style={{
-                                display: "flex",
-                                flexWrap: "wrap",
-                                gap: 6,
-                                paddingLeft: 4,
-                              }}
-                            >
-                              {item.measurements.map((m) => (
-                                <MeasurementBadge key={m._id} m={m} />
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div
-                      style={{
-                        padding: "20px",
-                        textAlign: "center",
-                        color: "var(--text3)",
-                        fontSize: 12,
-                      }}
-                    >
-                      No items in this chapter
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              icon="📦"
-              title="No work items"
-              message="No work items are assigned to this span."
-            />
-          )}
-        </div>
-      )}
-      {/* ── Vault */}
-      {tab === "vault" && (
-        <div className="card">
-          <div className="card-title" style={{ marginBottom: 16 }}>
-            💰 Vault Details
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(180px,1fr))",
-              gap: 12,
-              marginBottom: 20,
-            }}
-          >
-            {[
-              [
-                "Allotted Budget",
-                `₹${(s.Vault?.allotedBudjet || 0).toLocaleString("en-IN")}`,
-                "var(--accent)",
-              ],
-              [
-                "Spent",
-                `₹${(s.Vault?.spentBudjet || 0).toLocaleString("en-IN")}`,
-                "var(--text)",
-              ],
-              [
-                "Remaining",
-                `₹${((s.Vault?.allotedBudjet || 0) - (s.Vault?.spentBudjet || 0)).toLocaleString("en-IN")}`,
-                (s.Vault?.allotedBudjet || 0) >= (s.Vault?.spentBudjet || 0)
-                  ? "var(--green)"
-                  : "var(--red)",
-              ],
-              ["Utilisation", `${spentPct}%`, barColor],
-            ].map(([l, v, c]) => (
-              <div
-                key={l}
-                style={{
-                  background: "rgba(255,255,255,.04)",
-                  padding: "14px 16px",
-                  borderRadius: 10,
-                  border: "1px solid var(--border)",
-                }}
-              >
+              {(s.Vault?.logs || []).length === 0 ? (
                 <div
                   style={{
-                    fontSize: 10,
+                    fontSize: 12,
                     color: "var(--text3)",
-                    textTransform: "uppercase",
-                    letterSpacing: ".07em",
-                    marginBottom: 6,
+                    padding: "16px 0",
+                    textAlign: "center",
                   }}
                 >
-                  {l}
+                  No transactions recorded yet.
                 </div>
-                <div
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 800,
-                    color: c,
-                    fontFamily: "var(--font-head)",
-                  }}
-                >
-                  {v}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div
-            style={{
-              marginBottom: 8,
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: 12,
-              color: "var(--text2)",
-            }}
-          >
-            <span>Budget utilisation</span>
-            <span style={{ color: barColor, fontWeight: 700 }}>
-              {spentPct}%
-            </span>
-          </div>
-          <div
-            style={{
-              height: 8,
-              background: "rgba(255,255,255,.08)",
-              borderRadius: 4,
-              overflow: "hidden",
-              marginBottom: 20,
-            }}
-          >
-            <div
-              style={{
-                width: `${spentPct}%`,
-                height: "100%",
-                background: barColor,
-                borderRadius: 4,
-                transition: "width .6s",
-              }}
-            />
-          </div>
-
-          {/* Vault logs */}
-          <div
-            style={{
-              fontFamily: "var(--font-head)",
-              fontWeight: 700,
-              fontSize: 14,
-              marginBottom: 12,
-            }}
-          >
-            Transaction Log
-          </div>
-          {(s.Vault?.logs || []).length === 0 ? (
-            <div
-              style={{
-                fontSize: 12,
-                color: "var(--text3)",
-                padding: "16px 0",
-                textAlign: "center",
-              }}
-            >
-              No transactions recorded yet.
+              ) : (
+                s.Vault.logs.map((log, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "10px 0",
+                      borderBottom: "1px solid var(--border2)",
+                      fontSize: 13,
+                    }}
+                  >
+                    <span>{log.note || "Transaction"}</span>
+                    <span
+                      style={{
+                        fontFamily: "monospace",
+                        color: log.amount >= 0 ? "var(--red)" : "var(--green)",
+                      }}
+                    >
+                      {log.amount >= 0 ? "−" : "+"}₹
+                      {Math.abs(log.amount).toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
-          ) : (
-            s.Vault.logs.map((log, i) => (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "10px 0",
-                  borderBottom: "1px solid var(--border2)",
-                  fontSize: 13,
-                }}
-              >
-                <span>{log.note || "Transaction"}</span>
-                <span
-                  style={{
-                    fontFamily: "monospace",
-                    color: log.amount >= 0 ? "var(--red)" : "var(--green)",
-                  }}
-                >
-                  {log.amount >= 0 ? "−" : "+"}₹
-                  {Math.abs(log.amount).toLocaleString("en-IN")}
-                </span>
-              </div>
-            ))
+          )}
+          {tab === "staff" && (
+            <StaffPanel
+              spanId={s._id}
+              onStaffChange={refetchSpan}
+              existingStaff={s.staff || []}
+            />
           )}
         </div>
-      )}
-      {tab === "staff" && (
-        <StaffPanel spanId={s._id} existingStaff={s.staff || []} />
       )}
     </div>
   );
 };
 
 // ─── Staff Panel ──────────────────────────────────────────────────
-function StaffPanel({ spanId, existingStaff }) {
+function StaffPanel({ spanId, onStaffChange, existingStaff }) {
   const [search, setSearch] = useState("");
   const [apiError, setApiError] = useState("");
 
+  // ✅ Local state for instant UI updates
+  const [localStaffIds, setLocalStaffIds] = useState(
+    () => new Set(existingStaff.map((u) => u._id ?? u)),
+  );
+
+  // ✅ Sync if parent re-renders with fresh data after refetch
+  useEffect(() => {
+    setLocalStaffIds(new Set(existingStaff.map((u) => u._id ?? u)));
+  }, [existingStaff]);
+
   const { data: usersData, loading: usersLoading } = useQuery(
     USER_QUERIES.list,
-    {
-      fetchPolicy: "cache-and-network",
-      variables: { page: 1, limit: 50 },
-    },
+    { fetchPolicy: "cache-and-network", variables: { page: 1, limit: 50 } },
   );
 
   const [addStaff, { loading: adding }] = useMutation(SPAN_QUERIES.addStaff);
@@ -614,41 +674,45 @@ function StaffPanel({ spanId, existingStaff }) {
   );
 
   const allUsers = usersData?.users?.data ?? [];
-  const staffIds = new Set(existingStaff.map((u) => u._id ?? u));
-  const staffUsers = allUsers.filter((u) => staffIds.has(u._id));
+  const staffUsers = allUsers.filter((u) => localStaffIds.has(u._id));
   const searchLower = search.toLowerCase();
   const available = allUsers.filter(
     (u) =>
-      !staffIds.has(u._id) &&
+      !localStaffIds.has(u._id) &&
       (u.name?.toLowerCase().includes(searchLower) ||
         u.email?.toLowerCase().includes(searchLower)),
   );
 
-  const invalidate = (cache) => {
-    cache.evict({ fieldName: "spans" });
-    cache.gc();
-  };
-
   const handleAdd = async (userId) => {
     setApiError("");
+    setLocalStaffIds((prev) => new Set([...prev, userId])); // ✅ optimistic
     try {
-      await addStaff({
-        variables: { id: spanId, userId },
-        update: invalidate,
-      });
+      await addStaff({ variables: { id: spanId, userId } });
+      await onStaffChange(); // ✅ refetch span — syncs s.staff in parent
     } catch (e) {
+      // ✅ rollback on error
+      setLocalStaffIds((prev) => {
+        const s = new Set(prev);
+        s.delete(userId);
+        return s;
+      });
       setApiError(e.message);
     }
   };
 
   const handleRemove = async (userId) => {
     setApiError("");
+    setLocalStaffIds((prev) => {
+      const s = new Set(prev);
+      s.delete(userId);
+      return s;
+    }); // ✅ optimistic
     try {
-      await removeStaff({
-        variables: { id: spanId, userId },
-        update: invalidate,
-      });
+      await removeStaff({ variables: { id: spanId, userId } });
+      await onStaffChange(); // ✅ refetch span
     } catch (e) {
+      // ✅ rollback on error
+      setLocalStaffIds((prev) => new Set([...prev, userId]));
       setApiError(e.message);
     }
   };

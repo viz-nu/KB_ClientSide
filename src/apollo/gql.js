@@ -24,33 +24,6 @@ export const PAGINATION_FRAGMENT = gql`
   }
 `;
 
-export const LINE_ITEM_FRAGMENT = gql`
-  fragment LineItemFields on LineItem {
-    id itemCode description quantity unit ratePerUnit amount
-  }
-`;
-
-export const PHOTO_FRAGMENT = gql`
-  fragment PhotoFields on Photo {
-    id url caption gpsLat gpsLng capturedAt
-  }
-`;
-
-export const EMB_ENTRY_FRAGMENT = gql`
-  fragment EmbEntryFields on EmbEntry {
-    id title workCategory scheduleChapter status
-    locationDescription gpsLat gpsLng
-    totalAmount remarks adminRemark returnReason
-    createdAt submittedAt
-    engineer { ...UserFields }
-    span  { _id name }
-    lineItems { ...LineItemFields }
-    photos    { ...PhotoFields }
-    auditLog { action user timestamp note }
-  }
-  ${LINE_ITEM_FRAGMENT}
-  ${PHOTO_FRAGMENT}
-`;
 export const ITEM_FRAGMENT = gql`
   fragment ItemFields on Item {
     _id
@@ -97,32 +70,12 @@ export const MUTATIONS = {
   `,
 };
 
-
 export const LOGIN = gql`
   mutation Public($email: String!, $password: String!) {
     login(email: $email, password: $password) {
       accessToken
       refreshToken
       user { ...UserFields }
-    }
-  }
-  ${USER_FRAGMENT}
-`;
-
-export const LOGOUT = gql`
-  mutation Logout { logout }
-`;
-
-export const CHANGE_PASSWORD = gql`
-  mutation ChangePassword($oldPassword: String!, $newPassword: String!) {
-    changePassword(oldPassword: $oldPassword, newPassword: $newPassword)
-  }
-`;
-
-export const ME = gql`
-  query Me {
-    me {
-      ...UserFields
     }
   }
   ${USER_FRAGMENT}
@@ -183,37 +136,6 @@ delete:gql`
 }
 
 
-export const SYSTEM_HEALTH = gql`
-  query SystemHealth {
-    systemHealth {
-      cpu memory disk activeUsers
-      pendingEntries approvedEntries rejectedEntries
-      recentActivity { action user timestamp }
-    }
-  }
-`;
-
-export const LIST_FIELD_ENGINEERS = gql`
-  query ListFieldEngineers($spanId: ID!) {
-    fieldEngineers(spanId: $spanId) {
-      ...UserFields
-    }
-  }
-`;
-
-export const ASSIGN_ENGINEER = gql`
-  mutation AssignEngineer($userId: ID!, $spanId: ID!) {
-    assignEngineerToSpan(userId: $userId, spanId: $spanId) { id }
-  }
-`;
-
-export const REMOVE_ENGINEER = gql`
-  mutation RemoveEngineer($userId: ID!, $spanId: ID!) {
-    removeEngineerFromSpan(userId: $userId, spanId: $spanId) { id }
-  }
-`;
-
-
 // ─────────────────────────────────────────────
 // Project Management
 // ─────────────────────────────────────────────
@@ -245,10 +167,67 @@ get:gql`
 `,
 }
 
+// ─────────────────────────────────────────────
+// Span Management
+// ─────────────────────────────────────────────
+
 export const SPAN_QUERIES={
   create:gql`mutation createSpan($spanInput: SpanInput!) {
     createSpan(spanInput: $spanInput) {_id}
   }`,
+  get:gql`query getSpan($id: ID!) {
+  span(_id: $id) {
+    _id
+    project {
+      _id
+      name
+    }
+    name
+    startPoint {
+      placeName
+      chainNumber
+      pointLocation {
+        type
+        coordinates
+      }
+    }
+    endPoint {
+      placeName
+      chainNumber
+      pointLocation {
+        type
+        coordinates
+      }
+    }
+    status
+    Vault {
+      allotedBudjet
+      spentBudjet
+      logs
+    }
+    staff {
+      _id
+      designation
+      name
+    }
+    createdAt
+    updatedAt
+    chapters {
+      items {
+        label
+        description
+        measurements
+        _id
+        code
+      }
+      _id
+      code
+      color
+      name
+    }
+  }
+}
+`,
   //remove:gql``,
   list:gql`query getSpans($page: Int, $limit: Int) {
     spans(page: $page, limit: $limit) {
@@ -306,10 +285,6 @@ export const SPAN_QUERIES={
   }`,
 }
 
-
-
-
-
 // ─────────────────────────────────────────────
 // e-MB ENTRIES
 // ─────────────────────────────────────────────
@@ -362,104 +337,3 @@ update:gql`mutation UpdateActivityStatus($_id: ID!, $status: String!, $adminRema
 `,
 }
 
-export const GET_EMB_ENTRY = gql`
-  query GetEmbEntry($id: ID!) {
-    embEntry(id: $id) { ...EmbEntryFields }
-  }
-  ${EMB_ENTRY_FRAGMENT}
-`;
-
-export const CREATE_EMB_ENTRY = gql`
-  mutation CreateEmbEntry($input: CreateEmbEntryInput!) {
-    createEmbEntry(input: $input) { ...EmbEntryFields }
-  }
-  ${EMB_ENTRY_FRAGMENT}
-`;
-
-export const UPDATE_EMB_ENTRY = gql`
-  mutation UpdateEmbEntry($id: ID!, $input: UpdateEmbEntryInput!) {
-    updateEmbEntry(id: $id, input: $input) { ...EmbEntryFields }
-  }
-  ${EMB_ENTRY_FRAGMENT}
-`;
-
-export const SUBMIT_EMB_ENTRY = gql`
-  mutation SubmitEmbEntry($id: ID!) {
-    submitEmbEntry(id: $id) { id status submittedAt }
-  }
-`;
-
-export const DELETE_EMB_ENTRY = gql`
-  mutation DeleteEmbEntry($id: ID!) { deleteEmbEntry(id: $id) }
-`;
-
-export const APPROVE_EMB_ENTRY = gql`
-  mutation ApproveEmbEntry($id: ID!, $remark: String) {
-    approveEmbEntry(id: $id, remark: $remark) { id status adminRemark }
-  }
-`;
-
-export const REJECT_EMB_ENTRY = gql`
-  mutation RejectEmbEntry($id: ID!, $remark: String!) {
-    rejectEmbEntry(id: $id, remark: $remark) { id status adminRemark }
-  }
-`;
-
-export const RETURN_EMB_ENTRY = gql`
-  mutation ReturnEmbEntry($id: ID!, $returnReason: String!) {
-    returnEmbEntry(id: $id, returnReason: $returnReason) { id status returnReason }
-  }
-`;
-
-// ─────────────────────────────────────────────
-// PHOTOS
-// ─────────────────────────────────────────────
-export const GET_PHOTO_UPLOAD_URL = gql`
-  mutation GetPhotoUploadUrl($filename: String!, $contentType: String!) {
-    photoUploadUrl(filename: $filename, contentType: $contentType) {
-      uploadUrl
-      finalUrl
-    }
-  }
-`;
-
-export const SAVE_PHOTO = gql`
-  mutation SavePhoto($entryId: ID!, $input: PhotoUploadInput!) {
-    uploadPhoto(entryId: $entryId, input: $input) { ...PhotoFields }
-  }
-  ${PHOTO_FRAGMENT}
-`;
-
-export const DELETE_PHOTO = gql`
-  mutation DeletePhoto($photoId: ID!) { deletePhoto(photoId: $photoId) }
-`;
-
-// ─────────────────────────────────────────────
-// GIS
-// ─────────────────────────────────────────────
-export const GIS_ENTRIES = gql`
-  query GisEntries($spanId: ID!) {
-    gisEntries(spanId: $spanId) {
-      id title status gpsLat gpsLng workCategory totalAmount
-      engineer { ...UserFields }
-    }
-  }
-`;
-
-// ─────────────────────────────────────────────
-// REPORTS
-// ─────────────────────────────────────────────
-export const PROGRESS_REPORT = gql`
-  query ProgressReport($spanId: ID!, $from: String!, $to: String!) {
-    progressReport(spanId: $spanId, from: $from, to: $to) {
-      totalEntries approved rejected pending returned totalAmount
-      categoryBreakdown { category count amount }
-    }
-  }
-`;
-
-export const GENERATE_REPORT = gql`
-  mutation GenerateReport($input: ReportInput!) {
-    generateReport(input: $input) { url generatedAt }
-  }
-`;
