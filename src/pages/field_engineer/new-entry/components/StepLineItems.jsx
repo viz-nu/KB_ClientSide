@@ -1,5 +1,3 @@
-import { useQuery } from "@apollo/client";
-import { SPAN_QUERIES } from "../../../../apollo/gql.js";
 import { EmptyState } from "../../../../components/common/index.jsx";
 import LineItemCard from "../components/LineItemCard.jsx";
 export default function StepLineItems({ form, set, addLine,removeLine,updateLine, activeChapter }) {

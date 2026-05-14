@@ -1,6 +1,7 @@
 import { useState } from "react";
-import MeasurementInput from "../../../../components/common/MeasurementInput";
+
 import { FormField } from "../../../../components/common/index.jsx";
+import MeasurementInput from "./MeasurementInput.jsx";
 
 export default function LineItemCard({
   form,
@@ -109,7 +110,7 @@ export default function LineItemCard({
                   marginBottom: 12,
                 }}
               >
-                <FormField label="Work Item">
+                <FormField label="Work Item" description="Select the work item from the list of available work items">
                   <div
                     style={{
                       display: "flex",
@@ -212,7 +213,7 @@ export default function LineItemCard({
               </div>
 
               {/* Row 2: Description */}
-              <FormField label="Description / Remarks">
+              <FormField label="Description / Remarks" description="Detailed description of work done at site">
                 <input
                   className="form-control"
                   value={form.remarks || ""}

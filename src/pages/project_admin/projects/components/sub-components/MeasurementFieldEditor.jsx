@@ -64,7 +64,7 @@ export default function MeasurementFieldEditor({
             alignItems: "center",
           }}
         >
-          <FormField label="Field Label">
+          <FormField label="Field Label" description="Label of the field">
             <input
               className="form-control"
               style={{ padding: "5px 10px", fontSize: 12 }}
@@ -76,7 +76,7 @@ export default function MeasurementFieldEditor({
               placeholder="Field label…"
             />
           </FormField>
-          <FormField label="Unit">
+          <FormField label="Unit" description="Unit of the field measurement">
             <input
               className="form-control"
               style={{ padding: "5px 10px", fontSize: 12 }}
@@ -85,7 +85,7 @@ export default function MeasurementFieldEditor({
               placeholder="Unit"
             />
           </FormField>
-          <FormField label="Data Type">
+          <FormField label="Data Type" description="Type of the field data">
             <select
               className="form-control"
               style={{ padding: "5px 8px", fontSize: 12 }}
@@ -153,7 +153,7 @@ export default function MeasurementFieldEditor({
           flexWrap: "wrap",
         }}
       >
-        <FormField label="Key">
+        <FormField label="Key" description="Unique key for the field which is used to identify the field in the data">
           <input
             className="form-control"
             style={{
@@ -176,7 +176,7 @@ export default function MeasurementFieldEditor({
           />
         </FormField>
         {(m.type === "number" || m.type === "text") && (
-          <FormField label="Fixed Value (optional)">
+          <FormField label="Fixed Value" description="Optional fixed value for the field which user cannot change">
             <input
               className="form-control"
               type={m.type}
@@ -202,7 +202,7 @@ export default function MeasurementFieldEditor({
             />
           </FormField>
         )}
-        <FormField label="Billing Rate / Unit">
+        <FormField label="Billing Rate / Unit" description="Rate per unit of measurement billed to the client">
           <input
             type="number"
             min="0"
@@ -214,8 +214,20 @@ export default function MeasurementFieldEditor({
             onChange={(e) => onChange("billingRate", Number(e.target.value))}
           />
         </FormField>
+        <FormField label="Target Value" description="Target value for cumulative progress calculation">
+          <input
+            type="number"
+            min="0"
+            step="1"
+            className="form-control"
+            style={{ padding: "3px 8px", fontSize: 11, maxWidth: 100 }}
+            value={m.targetValue ?? ""}
+            placeholder="Target (for cumulative progress calculation)"
+            onChange={(e) => onChange("targetValue", Number(e.target.value))}
+          />
+        </FormField>
         {/* Photo proof toggle */}
-        <FormField label="Photo Proof">
+        <FormField label="Photo Proof" description="Whether the field requires a photo proof for completion">
           <div
             onClick={() => onChange("requiresPhoto", !m.requiresPhoto)}
             style={{

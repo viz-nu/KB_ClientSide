@@ -84,8 +84,8 @@ export const LOGIN = gql`
 // ─────────────────────────────────────────────
 // USERS  (system_admin)
 // ─────────────────────────────────────────────
-export const USER_QUERIES={
-  list:gql`
+export const USER_QUERIES = {
+  list: gql`
   query ListUsers(
     $page: Int
     $limit: Int
@@ -113,24 +113,24 @@ export const USER_QUERIES={
   ${USER_FRAGMENT}
   ${PAGINATION_FRAGMENT}
 `,
-get:gql`
+  get: gql`
   query GetUser($id: ID!) {
     user(id: $id) { ...UserFields }
   }
   ${USER_FRAGMENT}
 `,
-create:gql`
+  create: gql`
   mutation CreateUser($userInput: UserInput!) {
     createUser(userInput: $userInput) { ...UserFields }
   }
   ${USER_FRAGMENT}
 `,
-update:gql`
+  update: gql`
   mutation UpdateUser($id: ID!, $userInput: UserInput) {
     updateUser(_id: $id, userInput: $userInput) { _id }
   }
 `,
-delete:gql`
+  delete: gql`
   mutation DeleteUser($id: ID!) { deleteUser(id: $id) }
 `,
 }
@@ -140,14 +140,14 @@ delete:gql`
 // Project Management
 // ─────────────────────────────────────────────
 
-export const PROJECT_QUERIES={
-  create:gql`  mutation CreateProject($projectInput: ProjectInput!) {
+export const PROJECT_QUERIES = {
+  create: gql`  mutation CreateProject($projectInput: ProjectInput!) {
     createProject(projectInput: $projectInput) { _id name }
   }`,
-  update:gql`mutation UpdateProject($id: ID!, $projectInput: ProjectInput!) {
+  update: gql`mutation UpdateProject($id: ID!, $projectInput: ProjectInput!) {
     updateProject(_id: $id, projectInput: $projectInput) { _id name }
   }`,
-  list:gql`
+  list: gql`
   query ListProjects($page: Int, $limit: Int) {
     projects(page: $page, limit: $limit) {
       data { ...ProjectFields }
@@ -159,7 +159,7 @@ export const PROJECT_QUERIES={
   ${PROJECT_FRAGMENT}
   ${PAGINATION_FRAGMENT}
 `,
-get:gql`
+  get: gql`
   query GetProject($id: ID!) {
     project(id: $id) { ...ProjectFields }
   }
@@ -171,11 +171,11 @@ get:gql`
 // Span Management
 // ─────────────────────────────────────────────
 
-export const SPAN_QUERIES={
-  create:gql`mutation createSpan($spanInput: SpanInput!) {
+export const SPAN_QUERIES = {
+  create: gql`mutation createSpan($spanInput: SpanInput!) {
     createSpan(spanInput: $spanInput) {_id}
   }`,
-  get:gql`query getSpan($id: ID!) {
+  get: gql`query getSpan($id: ID!) {
   span(_id: $id) {
     _id
     project {
@@ -229,7 +229,7 @@ export const SPAN_QUERIES={
 }
 `,
   //remove:gql``,
-  list:gql`query getSpans($page: Int, $limit: Int) {
+  list: gql`query getSpans($page: Int, $limit: Int) {
     spans(page: $page, limit: $limit) {
       data {
         _id
@@ -274,13 +274,13 @@ export const SPAN_QUERIES={
   ${CHAPTER_FRAGMENT}
       ${PAGINATION_FRAGMENT}
     `,
-  update:gql` mutation UpdateSpan($id: ID!, $spanInput: SpanInput!) {
+  update: gql` mutation UpdateSpan($id: ID!, $spanInput: SpanInput!) {
     updateSpan(_id: $id, spanInput: $spanInput){_id}
   }`,
-  addStaff:gql` mutation AddStaff($id: ID!, $userId: ID!) {
+  addStaff: gql` mutation AddStaff($id: ID!, $userId: ID!) {
     addStaff(_id: $id, userID: $userId) { _id }
   }`,
-  removeStaff:gql` mutation RemoveStaff($id: ID!, $userId: ID!) {
+  removeStaff: gql` mutation RemoveStaff($id: ID!, $userId: ID!) {
     removeStaff(_id: $id, userID: $userId) { _id }
   }`,
 }
@@ -288,13 +288,16 @@ export const SPAN_QUERIES={
 // ─────────────────────────────────────────────
 // e-MB ENTRIES
 // ─────────────────────────────────────────────
-export const EMB_ENTRY={
-  create:gql`mutation CreateActivity($activityInput: ActivityInput!) {
+export const EMB_ENTRY = {
+  create: gql`mutation CreateActivity($activityInput: ActivityInput!) {
   createActivity(activityInput: $activityInput){ _id }
 }
 `,
-list:gql`query activities($page: Int, $limit: Int, $status: String, ) {
-  activities(page: $page, limit: $limit, status: $status) {
+  facets: gql`query activitiesFacet($status: String, $span: [ID], $project: [ID], $createdBy: [ID]) {
+  activitiesFacet(status: $status, span: $span, project: $project, createdBy: $createdBy)
+}`,
+  list: gql`query activities($page: Int, $limit: Int, $status: String, $span: [ID], $project: [ID], $createdBy: [ID], $fromDate: DateTime, $toDate: DateTime) {
+  activities(page: $page, limit: $limit, status: $status, span: $span, project: $project, createdBy: $createdBy, fromDate: $fromDate, toDate: $toDate) {
     data {
       _id
       WorkCategory
@@ -316,10 +319,16 @@ list:gql`query activities($page: Int, $limit: Int, $status: String, ) {
       updatedAt
       createdBy { _id name }
     }
+      PaginationMetaData {
+      page
+      limit
+      totalPages
+      totalDocuments
+    }
   }
 }
 `,
-update:gql`mutation UpdateActivityStatus($_id: ID!, $status: String!, $adminRemark: String, $returnReason: String) {
+  update: gql`mutation UpdateActivityStatus($_id: ID!, $status: String!, $adminRemark: String, $returnReason: String) {
      updateActivity(
        _id: $_id,
        activityInput: {

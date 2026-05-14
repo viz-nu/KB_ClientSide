@@ -38,8 +38,8 @@ export default function ReportsDashboard() {
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="card-header"><span className="card-title">Report Parameters</span></div>
         <div className="form-row">
-          <FormField label="From Date"><input className="form-control" type="date" value={from} onChange={e => setFrom(e.target.value)} /></FormField>
-          <FormField label="To Date">  <input className="form-control" type="date" value={to}   onChange={e => setTo(e.target.value)}   /></FormField>
+          <FormField label="From Date" description="Start date of the report"><input className="form-control" type="date" value={from} onChange={e => setFrom(e.target.value)} /></FormField>
+          <FormField label="To Date" description="End date of the report">  <input className="form-control" type="date" value={to}   onChange={e => setTo(e.target.value)}   /></FormField>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {[['📊 Progress Report','primary'],['📋 Compliance Report','outline'],['💰 Financial Report','outline']].map(([label, type]) => (

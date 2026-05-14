@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { EmptyState, StatusBadge, Modal, AlertBanner, Tabs } from "./index";
-import PhotoThumb from "./photoThumb";
+import { EmptyState, StatusBadge, Modal, AlertBanner, Tabs } from "./index.jsx";
+import PhotoThumb from "./photoThumb.jsx";
 
 // ─── Entry Detail Modal ──────────────────────────────────────────
 export default function EmbEntryDetailModal({
@@ -100,8 +100,14 @@ export default function EmbEntryDetailModal({
               ["Project", entry.project.name],
               ["Category", entry.WorkCategory],
               ["Location", entry.locationDescription],
-              ["Created", new Date(entry.createdAt).toLocaleString("en-IN")|| "—"],
-              ["Last Updated", new Date(entry.updatedAt).toLocaleString("en-IN") || "—"],
+              [
+                "Created",
+                new Date(entry.createdAt).toLocaleString("en-IN") || "—",
+              ],
+              [
+                "Last Updated",
+                new Date(entry.updatedAt).toLocaleString("en-IN") || "—",
+              ],
             ].map(([k, v]) => (
               <div
                 key={k}

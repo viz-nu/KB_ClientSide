@@ -17,6 +17,7 @@ export const CHAPTER_COLORS = [
 export const newMeasurement = () => ({
   _id: `m-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
   key: '', label: '', unit: '', type: 'number', options: [], columns: [], fixedNumber: undefined, fixedText: undefined, billingRate: undefined,
+  targetValue: undefined,
   requiresPhoto: false,
 });
 

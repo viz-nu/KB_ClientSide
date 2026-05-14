@@ -153,16 +153,74 @@ export function HealthBar({ label, value, color }) {
 }
 
 // ── FormField ────────────────────────────────────────────────────
-export function FormField({ label, error, children, required }) {
+export function FormField({ label, error, children, required, description }) {
   return (
-    <div className="form-group">
-      <label className="form-label">
+    <div className="form-group" style={{ position: "relative" }}>
+      <label className="form-label" style={{ display: "flex", alignItems: "center", gap: 6 }}>
         {label}
-        {required && <span style={{ color: 'var(--red)', marginLeft: 2 }}>*</span>}
+        {required && <span style={{ color: "var(--red)", marginLeft: 2 }}>*</span>}
+        {description && <InfoIcon description={description} />}
       </label>
       {children}
       {error && <div className="form-error">{error}</div>}
     </div>
+  );
+}
+
+function InfoIcon({ description }) {
+  return (
+    <span
+      style={{ position: "relative", display: "inline-flex", alignItems: "center" }}
+      tabIndex={0}
+      role="tooltip"
+      aria-label={description}
+      onMouseEnter={(e) => e.currentTarget.querySelector(".tooltip").style.display = "block"}
+      onMouseLeave={(e) => e.currentTarget.querySelector(".tooltip").style.display = "none"}
+      onFocus={(e)      => e.currentTarget.querySelector(".tooltip").style.display = "block"}
+      onBlur={(e)       => e.currentTarget.querySelector(".tooltip").style.display = "none"}
+    >
+      <svg
+        width="14" height="14" viewBox="0 0 14 14" fill="none"
+        style={{ cursor: "help", color: "var(--text3)", flexShrink: 0 }}
+      >
+        <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.2"/>
+        <text x="7" y="11" textAnchor="middle" fontSize="9" fontWeight="600"
+          fill="currentColor" fontFamily="var(--font-body)">i</text>
+      </svg>
+
+      <span
+        className="tooltip"
+        style={{
+          display: "none",
+          position: "absolute",
+          bottom: "calc(100% + 6px)",
+          left: "50%",
+          transform: "translateX(-50%)",
+          background: "var(--navy)",
+          color: "var(--text)",
+          fontSize: 11,
+          lineHeight: 1.5,
+          padding: "6px 10px",
+          borderRadius: 6,
+          whiteSpace: "pre-wrap",
+          maxWidth: 220,
+          width: "max-content",
+          boxShadow: "0 2px 8px rgba(0,0,0,.25)",
+          zIndex: 99,
+          pointerEvents: "none",
+          border: "1px solid var(--border)",
+        }}
+      >
+        {description}
+        {/* caret */}
+        <span style={{
+          position: "absolute", bottom: -5, left: "50%", transform: "translateX(-50%)",
+          width: 8, height: 8, background: "var(--navy)",
+          borderRight: "1px solid var(--border)", borderBottom: "1px solid var(--border)",
+          rotate: "45deg",
+        }}/>
+      </span>
+    </span>
   );
 }
 

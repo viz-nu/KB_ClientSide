@@ -143,7 +143,7 @@ export function ProjectDetailsCard({ proj, errors, apiError, onChange }) {
         Project Details
       </div>
       <div className="form-row">
-        <FormField label="Project Name" error={errors.name} required>
+        <FormField label="Project Name" error={errors.name} required description="Name of the project">
           <input
             className="form-control"
             value={proj.name}
@@ -151,7 +151,7 @@ export function ProjectDetailsCard({ proj, errors, apiError, onChange }) {
             placeholder="e.g. Secunderabad Yard Remodelling"
           />
         </FormField>
-        <FormField label="Project Code" error={errors.code} required>
+        <FormField label="Project Code" error={errors.code} required description="Code of the project">
           <input
             className="form-control"
             value={proj.code}
@@ -161,7 +161,7 @@ export function ProjectDetailsCard({ proj, errors, apiError, onChange }) {
           />
         </FormField>
       </div>
-      <FormField label="Description">
+      <FormField label="Description" description="Brief description of project scope">
         <input
           className="form-control"
           value={proj.description}
@@ -169,7 +169,7 @@ export function ProjectDetailsCard({ proj, errors, apiError, onChange }) {
           placeholder="Brief description of project scope"
         />
       </FormField>
-      <FormField label="Allotted Budget ₹">
+      <FormField label="Allotted Budget ₹" description="Allotted budget for the project">
         <input
           className="form-control"
           type="number"
@@ -358,7 +358,7 @@ export function BuilderGrid({
                 borderBottom: "1px solid var(--border)",
               }}
             >
-              <FormField label="Chapter Name">
+              <FormField label="Chapter Name" description="Name of the chapter">
                 <input
                   className="form-control"
                   value={activeChapter.name}
@@ -374,7 +374,7 @@ export function BuilderGrid({
                 />
               </FormField>
               <div className="form-row">
-                <FormField label="Code">
+                <FormField label="Code" description="Code of the chapter">
                   <input
                     className="form-control"
                     value={activeChapter.code}
@@ -390,7 +390,7 @@ export function BuilderGrid({
                     style={{ fontFamily: "monospace" }}
                   />
                 </FormField>
-                <FormField label="Color">
+                <FormField label="Color" description="Color of the chapter">
                   <div
                     style={{
                       display: "flex",
@@ -589,7 +589,7 @@ export function BuilderGrid({
                 Work Item Details
               </div>
               <div className="form-row">
-                <FormField label="Item Label" required>
+                <FormField label="Item Label" required description="Label of the item">
                   <input
                     className="form-control"
                     value={activeItem.label}
@@ -605,7 +605,7 @@ export function BuilderGrid({
                     placeholder="e.g. Cable Laying (Quad)"
                   />
                 </FormField>
-                <FormField label="Item Code" required>
+                <FormField label="Item Code" required description="Code of the item">
                   <input
                     className="form-control"
                     value={activeItem.code}
@@ -623,7 +623,7 @@ export function BuilderGrid({
                   />
                 </FormField>
               </div>
-              <FormField label="Description">
+              <FormField label="Description" description="Brief description of the work item">
                 <input
                   className="form-control"
                   value={activeItem.description}

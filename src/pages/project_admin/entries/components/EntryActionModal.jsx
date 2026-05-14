@@ -61,6 +61,7 @@ export default function EntryActionModal({
 
       <FormField
         label={requiresRemark ? 'Reason (required)' : 'Approval remark (optional)'}
+        description={requiresRemark ? 'Reason for the action' : 'Remark for the action'}
         required={requiresRemark}
       >
         <textarea

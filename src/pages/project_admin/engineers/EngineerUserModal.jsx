@@ -145,7 +145,7 @@ export default function EngineerUserModal({
     >
       {formError && <AlertBanner type="error" message={formError} />}
       <div className="form-row">
-        <FormField label="Full name" required>
+        <FormField label="Full name" required description="Full name of the engineer">
           <input
             className="form-control"
             value={name}
@@ -153,7 +153,7 @@ export default function EngineerUserModal({
             placeholder="e.g. Rajesh Kumar"
           />
         </FormField>
-        <FormField label="Designation">
+        <FormField label="Designation" description="Designation of the engineer">
           <input
             className="form-control"
             value={designation}
@@ -165,7 +165,7 @@ export default function EngineerUserModal({
           <input className="form-control" value={span} onChange={(e) => setSpan(e.target.value)} placeholder="e.g. South Central Span" />
         </FormField> */}
       </div>
-      <FormField label="Email" required>
+      <FormField label="Email" required description="Email address of the engineer">
         <input
           className="form-control"
           type="email"
@@ -176,7 +176,7 @@ export default function EngineerUserModal({
         />
       </FormField>
       <div className="form-row">
-        <FormField label="Role" required>
+        <FormField label="Role" required description="Role of the engineer">
           <select
             className="form-control"
             value={role}
@@ -190,6 +190,7 @@ export default function EngineerUserModal({
         <FormField
           label={isEdit ? "Password (optional)" : "Password"}
           required={!isEdit}
+          description="Password for the engineer's account"
         >
           <input
             className="form-control"
@@ -206,7 +207,7 @@ export default function EngineerUserModal({
         </FormField>
       </div>
       {!isEdit && projectList.length > 0 && (
-        <FormField label="Projects" required>
+        <FormField label="Projects" required description="Select the projects the engineer is assigned to">
           <div className="form-group">
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {projectsDataLoading && <Spinner size={14} color="var(--navy)" />}
@@ -246,19 +247,6 @@ export default function EngineerUserModal({
             </div>
           </div>
         </FormField>
-        // <FormField label="Projects" required>
-        //   <select
-        //     className="form-control"
-        //     multiple
-        //     size={Math.min(Math.max(projectList.length, 3), 8)}
-        //     value={projectIds}
-        //     onChange={(e) => setProjectIds(Array.from(e.target.selectedOptions, (o) => o.value))}
-        //   >
-        //     {projectsData.projects.data?.map((p) => (
-        //       <option key={p._id} value={p._id}>{p.name}</option>
-        //     ))}
-        //   </select>
-        // </FormField>
       )}
       {!isEdit && !projectList.length && (
         <AlertBanner
@@ -267,7 +255,7 @@ export default function EngineerUserModal({
         />
       )}
       {/* {isEdit && (
-        <FormField label="Scopes">
+        <FormField label="Scopes" description="Scopes of the engineer">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
             {ASSIGNABLE_SCOPE_OPTIONS.map((s) => (
               <label key={s} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>

@@ -20,7 +20,7 @@ export default function StepBasicInfo({
   return (
     <div>
       {/* ── 1. Span selector ── */}
-      <FormField label="Span" required>
+      <FormField label="Span" required description="Select the span from the list of available spans">
         {spansLoading ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <Spinner size={16} />{" "}
@@ -91,7 +91,7 @@ export default function StepBasicInfo({
       )}
 
       {/* ── 2. Work category from span's chapters ── */}
-      <FormField label="Work Category" required>
+      <FormField label="Work Category" required description="Select the work category from the list of available work categories">
         <select
           className="form-control"
           value={form.workCategory}
@@ -117,7 +117,7 @@ export default function StepBasicInfo({
       )}
 
       {/* ── 3. Location ── */}
-      <FormField label="Location Description" required>
+      <FormField label="Location Description" required description="Detailed description of the location where the work is being done">
         <input
           className="form-control"
           value={form.locationDescription}
