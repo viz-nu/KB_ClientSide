@@ -10,7 +10,6 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 import { PROJECT_QUERIES, SPAN_QUERIES } from "../../../apollo/gql.js";
-import { deepClean } from "../../../utils/helpers.js";
 
 import { SpanList } from "./components/listSpan.jsx";
 import { CreateSpan } from "./components/createSpan.jsx";
