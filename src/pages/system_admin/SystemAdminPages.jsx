@@ -214,7 +214,7 @@ export function UserManagement() {
                       {u.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td style={{ fontSize: 12, color: 'var(--text2)' }}>{u.createdAt}</td>
+                  <td style={{ fontSize: 12, color: 'var(--text2)' }}>{u.createdAt ? new Date(u.createdAt).toLocaleString("en-IN") : "—"}</td>
                   <td>
                     <div style={{ display: 'flex', gap: 5 }}>
                       <button className="btn btn-outline btn-sm" onClick={() => openEdit(u)}>Edit</button>

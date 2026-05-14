@@ -146,7 +146,10 @@ export const SpanDetail = ({ span, projects, onBack, onEdit }) => {
                     </span>,
                   ],
                   ["Work Items", `${s.chapters?.length || 0}`],
-                  ["Created", s.createdAt],
+                  [
+                    "Created",
+                    new Date(s.createdAt).toLocaleString("en-IN") || "—",
+                  ],
                 ].map(([k, v]) => (
                   <div
                     key={k}

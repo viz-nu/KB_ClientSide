@@ -100,8 +100,8 @@ export default function EmbEntryDetailModal({
               ["Project", entry.project.name],
               ["Category", entry.WorkCategory],
               ["Location", entry.locationDescription],
-              ["Created", entry.createdAt],
-              ["Last Updated", entry.updatedAt || "—"],
+              ["Created", new Date(entry.createdAt).toLocaleString("en-IN")|| "—"],
+              ["Last Updated", new Date(entry.updatedAt).toLocaleString("en-IN") || "—"],
             ].map(([k, v]) => (
               <div
                 key={k}

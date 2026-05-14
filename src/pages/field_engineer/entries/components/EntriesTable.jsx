@@ -96,11 +96,7 @@ export default function EntriesTable({ filtered, setSelected }) {
               }}
             >
               {e.createdAt
-                ? new Date(e.createdAt).toLocaleDateString("en-IN", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  })
+                ? new Date(e.createdAt).toLocaleString("en-IN")
                 : "—"}
             </td>
 

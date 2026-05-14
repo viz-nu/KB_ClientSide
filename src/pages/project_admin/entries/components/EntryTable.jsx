@@ -52,9 +52,7 @@ export default function EntryTable({ filtered, setSelected, handleAction }) {
             {/* ── Date ── */}
             <td style={{ fontSize: 11, color: 'var(--text2)', whiteSpace: 'nowrap' }}>
               {e.createdAt
-                ? new Date(e.createdAt).toLocaleDateString('en-IN', {
-                    day: '2-digit', month: 'short', year: 'numeric',
-                  })
+                ? new Date(e.createdAt).toLocaleString('en-IN')
                 : '—'}
             </td>
 

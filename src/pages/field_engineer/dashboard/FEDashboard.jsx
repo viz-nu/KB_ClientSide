@@ -49,7 +49,7 @@ export default function FEDashboard() {
           <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--border2)' }}>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600 }}>{e.title}</div>
-              <div style={{ fontSize: 11, color: 'var(--text2)', marginTop: 2 }}>{e.workCategory?.split(' (')[0]} · {e.submittedAt || e.createdAt}</div>
+              <div style={{ fontSize: 11, color: 'var(--text2)', marginTop: 2 }}>{e.workCategory?.split(' (')[0]} · {new Date(e.createdAt).toLocaleString("en-IN")}</div>
               {(e.adminRemark || e.returnReason) && (
                 <div style={{ fontSize: 11, color: 'var(--yellow)', marginTop: 3 }}>
                   ⚠ {e.adminRemark || e.returnReason}
