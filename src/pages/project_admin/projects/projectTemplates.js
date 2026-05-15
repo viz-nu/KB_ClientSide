@@ -41,7 +41,7 @@ export const newChapter = () => ({
 export const newProject = () => ({
   _id: `proj-${Date.now()}`,
   name: '', code: '', description: '', Vault: { allotedBudjet: 0, spentBudjet: 0, logs: [] },
-  status: 'DRAFT',
+  status: 'SUBMITTED',
   chapters: []
 });
 

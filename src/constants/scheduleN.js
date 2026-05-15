@@ -1,5 +1,5 @@
 // ─── Schedule-N SOR Labour Items (from mindmap) ─────────────────
-export const CHAPTERS_N=[
+export const CHAPTERS_N = [
   {
     "name": "chapter 1",
     "code": "C1",
@@ -52,7 +52,7 @@ export const CHAPTERS_N=[
             "label": "text constant ",
             "unit": "",
             "type": "text",
-            "fixedText":"viss",
+            "fixedText": "viss",
             "options": [],
             "requiresPhoto": false,
             "_id": {
@@ -224,7 +224,7 @@ export const CHAPTERS_N=[
 
 // ─── Entry status display ────────────────────────────────────────
 export const STATUS_CONFIG = {
-  DRAFT: { label: 'Draft', color: '#94A3B8', bg: 'rgba(148,163,184,.1)' },
+  SUBMITTED: { label: 'Submitted', color: '#94A3B8', bg: 'rgba(148,163,184,.1)' },
   PENDING: { label: 'Pending', color: '#FBBF24', bg: 'rgba(251,191,36,.1)' },
   APPROVED: { label: 'Approved', color: '#22C55E', bg: 'rgba(34,197,94,.1)' },
   REJECTED: { label: 'Rejected', color: '#EF4444', bg: 'rgba(239,68,68,.1)' },
@@ -248,7 +248,7 @@ export const MOCK_ENTRIES = [
     span: { id: 's1', name: 'South Central Span' },
     gpsLat: 17.4326, gpsLng: 78.5013,
     locationDescription: 'Secunderabad Outer Yard, Km 12.4 to 14.9 Up Line',
-    photos: [],  adminRemark: '', returnReason: '',
+    photos: [], adminRemark: '', returnReason: '',
     lineItems: [
       { id: 'li1', itemCode: 'CL-TR12', description: 'Trench 1200mm', quantity: 2.5, unit: 'RKM', ratePerUnit: 45000, amount: 112500 },
       { id: 'li2', itemCode: 'CL-LAY', description: 'Cable Laying', quantity: 2.5, unit: 'RKM', ratePerUnit: 30000, amount: 75000 },

@@ -68,7 +68,8 @@ export default function SpanManagement() {
 
   // ── mutations ─────────────────────────────────────────────────
   const handleCreate = async (span) => {
-    const spanInput = buildSpanInput(span);
+    let spanInput = buildSpanInput(span);
+    spanInput.project = span.projectId;
     await createSpan({
       variables: { spanInput },
       update(cache) {
@@ -151,7 +152,7 @@ export default function SpanManagement() {
 function buildSpanInput(span) {
   return {
     name: span.name,
-    chapters: span.chapters.map(({_id}) => _id),
+    chapters: span.chapters.map(({ _id }) => _id),
     startPoint: {
       placeName: span.startPoint.placeName,
       chainNumber: Number(span.startPoint.chainNumber),
