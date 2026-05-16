@@ -24,8 +24,8 @@ export default function ReportsDashboard() {
       amount: entries.reduce((s, e) => s + (e.totalAmount || 0), 0),
       breakdown: CHAPTERS_N.map((t) => ({
         cat: t.name.split(' (')[0],
-        count: entries.filter(e => e.workCategory === t.name).length,
-        amount: entries.filter(e => e.workCategory === t.name).reduce((s, e) => s + (e.totalAmount || 0), 0),
+        count: entries.filter(e => e.chapter === t.name).length,
+        amount: entries.filter(e => e.chapter === t.name).reduce((s, e) => s + (e.totalAmount || 0), 0),
         color: t.color,
       })).filter(b => b.count > 0),
     });

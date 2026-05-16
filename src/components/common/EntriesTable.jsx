@@ -6,7 +6,7 @@ export default function EntriesTable({ filtered, setSelected, selectionDisabled 
       <thead>
         <tr>
           <th>Project / Span</th>
-          <th>Category</th>
+          <th>Chapter</th>
           <th>Line Items</th>
           <th>Status</th>
           <th>Remarks</th>
@@ -55,7 +55,7 @@ export default function EntriesTable({ filtered, setSelected, selectionDisabled 
 
             {/* ── Category ── */}
             <td style={{ fontSize: 11 }}>
-              {e.WorkCategory?.split(" (")[0] ?? "—"}
+              {e.chapter ?? "—"}
             </td>
 
             {/* ── Line Items Summary ── */}
@@ -70,21 +70,23 @@ export default function EntriesTable({ filtered, setSelected, selectionDisabled 
 
             {/* ── Remarks ── */}
             <td style={{ fontSize: 11, color: "var(--text2)", maxWidth: 180 }}>
-              {e.adminRemark || e.remarks ? (
+              {e.remarks?.length > 0 ? (
                 <span
+                  title={e.remarks.map((ele) => ele.notes).filter(Boolean).join(", ")}
                   style={{
+                    cursor: "help",
                     color:
                       e.status === "REJECTED"
                         ? "var(--red)"
-                        : e.status === "RETURNED"
-                          ? "var(--yellow)"
+                        : e.status === "APPROVED"
+                          ? "var(--green)"
                           : "var(--text2)",
                   }}
                 >
-                  {e.adminRemark || e.remarks}
+                  {e.remarks[e.remarks.length - 1].notes}
                 </span>
               ) : (
-                "—"
+                "—no remarks-"
               )}
             </td>
 

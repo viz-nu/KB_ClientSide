@@ -57,7 +57,11 @@ export default function FEDashboard() {
           <span>
             <strong>Summary stats unavailable.</strong> {facetError.message}
           </span>
-          <button type="button" className="btn btn-outline btn-sm" onClick={() => refetchFacets()}>
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            onClick={() => refetchFacets()}
+          >
             Retry
           </button>
         </div>
@@ -206,7 +210,11 @@ export default function FEDashboard() {
               title="Failed to load recent entries"
               message={error.message}
               action={
-                <button type="button" className="btn btn-outline" onClick={() => refetch()}>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => refetch()}
+                >
                   Retry
                 </button>
               }

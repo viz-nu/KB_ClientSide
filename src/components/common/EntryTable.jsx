@@ -52,7 +52,7 @@ export default function EntryTable({ filtered, setSelected, handleAction }) {
 
             {/* ── Work Category ── */}
             <td style={{ fontSize: 11 }}>
-              {e.WorkCategory?.split(" (")[0] ?? "—"}
+              {e.chapter?.name ?? "—"}
             </td>
 
             {/* ── Measurements summary ── */}
@@ -80,7 +80,7 @@ export default function EntryTable({ filtered, setSelected, handleAction }) {
 
             {/* ── Admin remark ── */}
             <td style={{ fontSize: 11, color: "var(--text2)", maxWidth: 180 }}>
-              {e.adminRemark || e.remarks ? (
+              {e.remarks?.length > 0 ? (
                 <span
                   style={{
                     color:
@@ -91,7 +91,7 @@ export default function EntryTable({ filtered, setSelected, handleAction }) {
                           : "var(--text2)",
                   }}
                 >
-                  {e.adminRemark || e.remarks}
+                  {e.remarks[e.remarks.length - 1].notes}
                 </span>
               ) : (
                 "—"

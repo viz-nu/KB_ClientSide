@@ -35,7 +35,7 @@ export default function GISDashboard() {
           .bindPopup(`
             <div style="font-family:sans-serif;min-width:200px;padding:4px">
               <strong style="font-size:13px">${e.title}</strong><br/>
-              <span style="font-size:11px;color:#666">${e.workCategory?.split(' (')[0]}</span><br/>
+              <span style="font-size:11px;color:#666">${e.chapter?.name}</span><br/>
               <span style="color:${color};font-weight:600;font-size:12px">${e.status}</span><br/>
               <span style="font-size:11px">👷 ${e.engineer.name}</span><br/>
               <span style="font-size:12px;font-weight:600">₹${e.totalAmount?.toLocaleString()}</span>
@@ -84,7 +84,7 @@ export default function GISDashboard() {
               {MOCK_ENTRIES.map(e => (
                 <tr key={e.id}>
                   <td style={{ fontSize: 13 }}>{e.title}</td>
-                  <td style={{ fontSize: 11 }}>{e.workCategory?.split(' (')[0]}</td>
+                  <td style={{ fontSize: 11 }}>{e.chapter?.name}</td>
                   <td style={{ fontSize: 12 }}>{e.engineer.name}</td>
                   <td style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text2)' }}>{e.gpsLat?.toFixed(4)}, {e.gpsLng?.toFixed(4)}</td>
                   <td><StatusBadge status={e.status} /></td>

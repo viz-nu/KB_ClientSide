@@ -1,5 +1,11 @@
 import { gql } from '@apollo/client';
 
+// Helper to build mutations with dynamic selection sets
+const withSelection = (operation, fields = "_id") => gql`
+  ${operation} {
+    ${fields}
+  }
+`;
 // ─────────────────────────────────────────────
 // FRAGMENTS
 // ─────────────────────────────────────────────
@@ -325,11 +331,11 @@ export const EMB_ENTRY = {
   activities(page: $page, limit: $limit, status: $status, span: $span, project: $project, createdBy: $createdBy, fromDate: $fromDate, toDate: $toDate) {
     data {
       _id
-      WorkCategory
-      adminRemark
+      chapter
       locationDescription
-      returnReason
-      remarks
+      remarks {
+        notes
+      }
       status
       lineItems
       span {
@@ -353,21 +359,15 @@ export const EMB_ENTRY = {
   }
 }
 `,
-  update: gql`mutation UpdateActivityStatus($_id: ID!, $status: String!, $adminRemark: String, $returnReason: String) {
-     updateActivity(
+  updateStatus: gql`mutation UpdateActivityStatus($_id: ID!, $statusUpdateInput: statusUpdateInput!) {
+     updateActivityStatus(
        _id: $_id,
-       activityInput: {
-         status: $status,
-         adminRemark: $adminRemark,
-         returnReason: $returnReason
-       }
-     ) {
-       _id
-       status
-       adminRemark
-       remarks
-     }
+       statusUpdateInput: $statusUpdateInput
+     ) { _id status }
    }
 `,
+  update: gql`mutation UpdateActivity($_id: ID!, $lineItems: JSON) {
+    updateActivity(_id: $_id, lineItems: $lineItems) { _id }
+  }`,
 }
 

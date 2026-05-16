@@ -28,7 +28,7 @@ export function Spinner({ size = 18, color = "var(--accent)" }) {
 export function StatusBadge({ status }) {
   const cfg = STATUS_CONFIG[status];
   return (
-    <span className="badge badge-role" style={{ "color": cfg?.color, }}>
+    <span className="badge badge-role" style={{ color: cfg?.color }}>
       {cfg.label}
     </span>
   );
@@ -294,7 +294,14 @@ export function HealthBar({ label, value, color }) {
 }
 
 // ── FormField ────────────────────────────────────────────────────
-export function FormField({ label, error, children, required, description }) {
+export function FormField({
+  label,
+  error,
+  children,
+  required,
+  description,
+  readOnly,
+}) {
   return (
     <div className="form-group" style={{ position: "relative" }}>
       <label
@@ -304,6 +311,17 @@ export function FormField({ label, error, children, required, description }) {
         {label}
         {required && (
           <span style={{ color: "var(--red)", marginLeft: 2 }}>*</span>
+        )}
+        {readOnly && (
+          <span style={{
+            fontSize: 10, fontWeight: 600, color: "var(--text3)",
+            background: "rgba(255,255,255,.06)",
+            border: "1px solid var(--border)",
+            borderRadius: 6, padding: "1px 6px",
+            letterSpacing: ".04em",
+          }}>
+            🔒 read only
+          </span>
         )}
         {description && <InfoIcon description={description} />}
       </label>

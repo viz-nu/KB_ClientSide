@@ -1,9 +1,13 @@
-import { useState }          from "react";
-import { useNavigate }        from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@apollo/client";
-import { EMB_ENTRY }          from "../../../apollo/gql.js";
-import { PageHeader, EmptyState, Spinner } from "../../../components/common/index.jsx";
-import EmbEntryDetailModal    from "../../../components/common/EmbEntryDetailModal.jsx";
+import { EMB_ENTRY } from "../../../apollo/gql.js";
+import {
+  PageHeader,
+  EmptyState,
+  Spinner,
+} from "../../../components/common/index.jsx";
+import EmbEntryDetailModal from "../../../components/common/EmbEntryDetailModal.jsx";
 import {
   PAGE_LIMIT,
   emptyFilters,
@@ -16,21 +20,22 @@ import {
 } from "../../../components/common/EntryFilters.jsx";
 import EntryActionModal from "../../../components/common/EntryActionModal.jsx";
 import EntryTable from "../../../components/common/EntryTable.jsx";
+import { useAuth } from "../../../hooks/useAuth.js";
 
 // PA sees every status except DRAFT (no actions on un-submitted entries)
-const PA_STATUS_OPTIONS = ["SUBMITTED", "APPROVED", "REJECTED", "RETURNED"];
+const PA_STATUS_OPTIONS = ["SUBMITTED", "APPROVED", "REJECTED"];
 
 // ═══════════════════════════════════════════════════════════════════
 // PAEntries — project admin review and action view
 // ═══════════════════════════════════════════════════════════════════
 export default function PAEntries() {
   const navigate = useNavigate();
-
-  const [filters,     setFilters]     = useState(emptyFilters);
-  const [page,        setPage]        = useState(1);
-  const [selected,    setSelected]    = useState(null);
+  const { user } = useAuth();
+  const [filters, setFilters] = useState(emptyFilters);
+  const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState(null);
   const [actionModal, setActionModal] = useState(null);
-  const [panelOpen,   setPanelOpen]   = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
 
   // Unfiltered facets + label cache (see entryFilters.jsx for why)
   const { facets, facetLoading, labelCache } = useFacets();
@@ -38,51 +43,71 @@ export default function PAEntries() {
   const { data, loading, error, refetch } = useQuery(EMB_ENTRY.list, {
     variables: {
       page,
-      limit:     PAGE_LIMIT,
-      status:    filters.status             || undefined,
-      span:      filters.spans.length       ? filters.spans     : undefined,
-      project:   filters.projects.length    ? filters.projects  : undefined,
-      createdBy: filters.createdBy.length   ? filters.createdBy : undefined,
-      fromDate:  filters.fromDate           || undefined,
-      toDate:    filters.toDate             || undefined,
+      limit: PAGE_LIMIT,
+      status: filters.status || undefined,
+      span: filters.spans.length ? filters.spans : undefined,
+      project: filters.projects.length ? filters.projects : undefined,
+      createdBy: filters.createdBy.length ? filters.createdBy : undefined,
+      fromDate: filters.fromDate || undefined,
+      toDate: filters.toDate || undefined,
     },
     fetchPolicy: "cache-and-network",
   });
 
-  const entries    = data?.activities?.data              ?? [];
+  const entries = data?.activities?.data ?? [];
   const pagination = data?.activities?.PaginationMetaData ?? {};
   const totalPages = pagination.totalPages ?? 1;
 
-  const [updateActivity, { loading: mutating }] = useMutation(EMB_ENTRY.update, {
-    onCompleted: () => { refetch(); setSelected(null); setActionModal(null); },
-    onError: (err) => console.error("Action failed:", err),
-  });
+  const [updateActivity, { loading: mutating }] = useMutation(
+    EMB_ENTRY.updateStatus,
+    {
+      onCompleted: () => {
+        refetch();
+        setSelected(null);
+        setActionModal(null);
+      },
+      onError: (err) => console.error("Action failed:", err),
+    },
+  );
 
-  const applyFilter  = (patch) => { setFilters((f) => ({ ...f, ...patch })); setPage(1); };
-  const resetFilters = () => { setFilters(emptyFilters()); setPage(1); };
+  const applyFilter = (patch) => {
+    setFilters((f) => ({ ...f, ...patch }));
+    setPage(1);
+  };
+  const resetFilters = () => {
+    setFilters(emptyFilters());
+    setPage(1);
+  };
 
-  const handleAction = (entry, action) => setActionModal({ entry, action, remark: "" });
+  const handleAction = (entry, action) =>
+    setActionModal({ entry, action, remark: "" });
   const submitAction = () => {
     const { entry, action, remark } = actionModal;
-    const statusMap = { APPROVE: "APPROVED", REJECT: "REJECTED", RETURN: "RETURNED" };
+    const statusMap = {
+      APPROVE: "APPROVED",
+      REJECT: "REJECTED",
+    };
     updateActivity({
       variables: {
-        _id:          entry._id,
-        status:       statusMap[action],
-        adminRemark:  action !== "RETURN" ? remark : undefined,
-        returnReason: action === "RETURN" ? remark : undefined,
+        _id: entry._id,
+        statusUpdateInput: {
+          status: statusMap[action],
+          note: remark,
+        },
       },
     });
   };
 
   const handleProgressReport = () => {
     const params = new URLSearchParams();
-    if (filters.status)           params.set("status",    filters.status);
-    if (filters.projects.length)  params.set("projects",  filters.projects.join(","));
-    if (filters.spans.length)     params.set("spans",     filters.spans.join(","));
-    if (filters.createdBy.length) params.set("createdBy", filters.createdBy.join(","));
-    if (filters.fromDate)         params.set("fromDate",  filters.fromDate);
-    if (filters.toDate)           params.set("toDate",    filters.toDate);
+    if (filters.status) params.set("status", filters.status);
+    if (filters.projects.length)
+      params.set("projects", filters.projects.join(","));
+    if (filters.spans.length) params.set("spans", filters.spans.join(","));
+    if (filters.createdBy.length)
+      params.set("createdBy", filters.createdBy.join(","));
+    if (filters.fromDate) params.set("fromDate", filters.fromDate);
+    if (filters.toDate) params.set("toDate", filters.toDate);
     navigate(`/progress-report?${params.toString()}`);
   };
 
@@ -102,7 +127,11 @@ export default function PAEntries() {
             <button
               className="btn btn-outline"
               onClick={() => setPanelOpen((x) => !x)}
-              style={active ? { borderColor: "var(--accent)", color: "var(--accent)" } : {}}
+              style={
+                active
+                  ? { borderColor: "var(--accent)", color: "var(--accent)" }
+                  : {}
+              }
             >
               ⚙ Filters{active ? ` (${activeCount(filters)})` : ""}
             </button>
@@ -115,14 +144,14 @@ export default function PAEntries() {
 
       {panelOpen && (
         <FilterPanel
-        role="project-admin"
+          role="project-admin"
           filters={filters}
           facets={facets}
           facetLoading={facetLoading}
           onChange={applyFilter}
           onReset={resetFilters}
           onClose={() => setPanelOpen(false)}
-          statusOptions={PA_STATUS_OPTIONS}   // PA skips DRAFT
+          statusOptions={PA_STATUS_OPTIONS} // PA skips DRAFT
         />
       )}
 
@@ -136,20 +165,37 @@ export default function PAEntries() {
       )}
 
       <div className="card">
-        <div className="table-wrap" style={{ position: "relative", minHeight: 120 }}>
+        <div
+          className="table-wrap"
+          style={{ position: "relative", minHeight: 120 }}
+        >
           {loading && (
-            <div style={{
-              position: "absolute", inset: 0, zIndex: 10,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              background: "rgba(0,0,0,.25)", borderRadius: 8,
-            }}>
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 10,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "rgba(0,0,0,.25)",
+                borderRadius: 8,
+              }}
+            >
               <Spinner />
             </div>
           )}
 
           {!loading && error && (
-            <EmptyState icon="⚠️" title="Failed to load entries" message={error.message}
-              action={<button className="btn btn-outline" onClick={() => refetch()}>Retry</button>}
+            <EmptyState
+              icon="⚠️"
+              title="Failed to load entries"
+              message={error.message}
+              action={
+                <button className="btn btn-outline" onClick={() => refetch()}>
+                  Retry
+                </button>
+              }
             />
           )}
 
@@ -157,10 +203,18 @@ export default function PAEntries() {
             <EmptyState
               icon="📭"
               title="No entries found"
-              message={active ? "Try adjusting your filters." : "No entries have been submitted yet."}
-              action={active
-                ? <button className="btn btn-outline" onClick={resetFilters}>Clear Filters</button>
-                : null}
+              message={
+                active
+                  ? "Try adjusting your filters."
+                  : "No entries have been submitted yet."
+              }
+              action={
+                active ? (
+                  <button className="btn btn-outline" onClick={resetFilters}>
+                    Clear Filters
+                  </button>
+                ) : null
+              }
             />
           )}
 
@@ -183,6 +237,7 @@ export default function PAEntries() {
           entry={selected}
           onClose={() => setSelected(null)}
           isAdmin
+          currentUserId={user._id}
           onAction={handleAction}
         />
       )}

@@ -14,7 +14,7 @@ export default function StepBasicInfo({
   activeSpan,
   activeChapter,
   handleSpanChange,
-  handleCategoryChange,
+  handleChapterChange,
 }) {
   const chapters = activeSpan?.chapters ?? [];
 
@@ -122,19 +122,19 @@ export default function StepBasicInfo({
 
       {/* Work category */}
       <FormField
-        label="Work Category"
+        label="Chapter"
         required
-        description="Select the category for this work"
+        description="Select the chapter for this work"
       >
         <select
           className="form-control"
-          value={form.workCategory}
-          onChange={(e) => handleCategoryChange(e.target.value)}
+          value={form.chapter}
+          onChange={(e) => handleChapterChange(e.target.value)}
           disabled={!activeSpan}
           style={{ fontSize: 15, opacity: !activeSpan ? 0.5 : 1 }}
         >
           <option value="">
-            {activeSpan ? "Select category…" : "Select a span first…"}
+            {activeSpan ? "Select chapter…" : "Select a span first…"}
           </option>
           {chapters.map((ch) => (
             <option key={ch._id} value={ch.name}>

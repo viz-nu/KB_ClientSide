@@ -2,6 +2,10 @@ import { EmptyState } from "../../../../components/common/index.jsx";
 import LineItemCard from "../components/LineItemCard.jsx";
 
 export default function StepLineItems({ form, set, addLine, removeLine, updateLine, activeChapter }) {
+  const handleAddLine = () => addLine(form, set);
+  const handleRemoveLine = (id) => removeLine(form, set, id);
+  const handleUpdateLine = (id, patch) => updateLine(form, set, id, patch);
+
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -13,7 +17,7 @@ export default function StepLineItems({ form, set, addLine, removeLine, updateLi
         </div>
         <button
           className="btn btn-outline btn-sm"
-          onClick={addLine}
+          onClick={handleAddLine}
           style={{ padding: "8px 14px", fontSize: 13, fontWeight: 600, minHeight: 40 }}
         >
           + Add Item
@@ -26,7 +30,7 @@ export default function StepLineItems({ form, set, addLine, removeLine, updateLi
           title="No line items yet"
           message="Tap '+ Add Item' to start recording measurements."
           action={
-            <button className="btn btn-primary btn-sm" onClick={addLine} style={{ minHeight: 44, padding: "10px 20px" }}>
+            <button className="btn btn-primary btn-sm" onClick={handleAddLine} style={{ minHeight: 44, padding: "10px 20px" }}>
               + Add First Item
             </button>
           }
@@ -35,8 +39,8 @@ export default function StepLineItems({ form, set, addLine, removeLine, updateLi
         <LineItemCard
           form={form}
           set={set}
-          updateLine={updateLine}
-          removeLine={removeLine}
+          updateLine={handleUpdateLine}
+          removeLine={handleRemoveLine}
           activeChapter={activeChapter}
         />
       )}

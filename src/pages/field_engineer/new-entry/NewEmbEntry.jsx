@@ -7,7 +7,7 @@ import StepSubmit from "./components/StepSubmit.jsx";
 import { useMutation, useQuery } from "@apollo/client";
 import { SPAN_QUERIES, EMB_ENTRY } from "../../../apollo/gql.js";
 import { deepClean } from "../../../utils/helpers.js";
-
+import { addLine, removeLine, updateLine } from "../common/index.js";
 const STEPS = [
   { label: "Span & Category", icon: "📍" },
   { label: "Measurements",    icon: "📐" },
@@ -21,7 +21,7 @@ export default function NewEmbEntry() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     spanId: "",
-    workCategory: "",
+    chapter: "",
     locationDescription: "",
     lineItems: [],
     remarks: "",
@@ -44,8 +44,7 @@ export default function NewEmbEntry() {
           activityInput: {
             spanId: form.spanId,
             locationDescription: form.locationDescription,
-            remarks: form.remarks,
-            WorkCategory: form.workCategory,
+            chapter: form.chapter,
             lineItems: form.lineItems.map((li) => deepClean(li)),
           },
         },
@@ -66,19 +65,11 @@ export default function NewEmbEntry() {
 
   const spans = spansData?.spans?.data ?? [];
   const activeSpan = spans.find((s) => s._id === form.spanId) ?? null;
-  const activeChapter = activeSpan?.chapters?.find((c) => c.name === form.workCategory) ?? null;
+  const activeChapter = activeSpan?.chapters?.find((c) => c.name === form.chapter) ?? null;
 
-  const addLine = () => set("lineItems", [...form.lineItems, { id: `li-${Date.now()}`, label: "", code: "", description: "", measurements: [], remarks: "" }]);
-  const removeLine = (id) => set("lineItems", form.lineItems.filter((li) => li._id !== id));
-  const updateLine = (id, lineItem) => {
-    const existing = form.lineItems.find((li) => li._id === id);
-    if (!existing) return;
-    set("lineItems", form.lineItems.map((li) => li._id === id ? { ...existing, ...lineItem } : li));
-  };
-  const handleSpanChange = (spanId) => { set("spanId", spanId); set("workCategory", ""); set("lineItems", []); };
-  const handleCategoryChange = (name) => { set("workCategory", name); set("lineItems", []); };
 
-  const canProceedStep1 = !!form.workCategory && !!form.locationDescription?.trim();
+  const handleSpanChange = (spanId) => { set("spanId", spanId); set("chapter", ""); set("lineItems", []); };
+  const handleChapterChange = (name) => { set("chapter", name); set("lineItems", []); };
 
   return (
     <div className="fade-up" style={{ maxWidth: 640, margin: "0 auto" }}>
@@ -134,7 +125,7 @@ export default function NewEmbEntry() {
             form={form} set={set} captureGPS={captureGPS}
             spans={spans} spansLoading={spansLoading} spansError={spansError}
             activeSpan={activeSpan} activeChapter={activeChapter}
-            handleSpanChange={handleSpanChange} handleCategoryChange={handleCategoryChange}
+            handleSpanChange={handleSpanChange} handleChapterChange={handleChapterChange}
           />
         )}
 
@@ -166,7 +157,6 @@ export default function NewEmbEntry() {
               className="btn btn-primary"
               style={{ flex: 2, minHeight: 48, fontSize: 14, fontWeight: 700 }}
               onClick={() => setStep((s) => s + 1)}
-              disabled={step === 1 && !canProceedStep1}
             >
               Next →
             </button>
