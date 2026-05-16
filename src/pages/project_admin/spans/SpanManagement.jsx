@@ -18,7 +18,7 @@ import { UpdateSpan } from "./components/updateSpan.jsx";
 
 // ── views ──────────────────────────────────────────────────────────
 const VIEWS = {
-  LIST: "list",
+  LIST:   "list",
   CREATE: "create",
   DETAIL: "detail",
   UPDATE: "update",
@@ -46,29 +46,18 @@ export default function SpanManagement() {
   const [createSpan] = useMutation(SPAN_QUERIES.create);
   const [updateSpan] = useMutation(SPAN_QUERIES.update);
 
-  const spans = spansData?.spans?.data ?? [];
+  const spans    = spansData?.spans?.data    ?? [];
   const projects = projectsData?.projects?.data ?? [];
 
   // ── navigation helpers ────────────────────────────────────────
-  const goList = () => {
-    setActive(null);
-    setView(VIEWS.LIST);
-  };
-  const goCreate = () => {
-    setView(VIEWS.CREATE);
-  };
-  const goDetail = (s) => {
-    setActive(s);
-    setView(VIEWS.DETAIL);
-  };
-  const goUpdate = (s) => {
-    setActive(JSON.parse(JSON.stringify(s)));
-    setView(VIEWS.UPDATE);
-  };
+  const goList   = ()  => { setActive(null); setView(VIEWS.LIST); };
+  const goCreate = ()  => { setView(VIEWS.CREATE); };
+  const goDetail = (s) => { setActive(s); setView(VIEWS.DETAIL); };
+  const goUpdate = (s) => { setActive(JSON.parse(JSON.stringify(s))); setView(VIEWS.UPDATE); };
 
   // ── mutations ─────────────────────────────────────────────────
   const handleCreate = async (span) => {
-    let spanInput = buildSpanInput(span);
+    const spanInput = buildSpanInput(span);
     spanInput.project = span.projectId;
     await createSpan({
       variables: { spanInput },
@@ -148,11 +137,29 @@ export default function SpanManagement() {
 
 // ─── helpers ───────────────────────────────────────────────────────
 
-/** Strips UI-only fields and shapes the object for the API. */
+/**
+ * Strips UI-only fields and shapes the object for the API.
+ *
+ * TargetedValues shape (add to your GraphQL mutation input type):
+ *   [{ chapterId: ID!, itemId: ID!, measurementLabel: String!, targetValue: Float! }]
+ */
 function buildSpanInput(span) {
   return {
     name: span.name,
+
+    // Array of chapter _ids — what the API expects
     chapters: span.chapters.map(({ _id }) => _id),
+
+    // Measurement targets — wire into your GraphQL schema when ready
+    TargetedValues: (span.TargetedValues ?? []).map(
+      ({ chapterId, itemId, measurementLabel, targetValue }) => ({
+        chapterId,
+        itemId,
+        measurementLabel,
+        targetValue: Number(targetValue),
+      }),
+    ),
+
     startPoint: {
       placeName: span.startPoint.placeName,
       chainNumber: Number(span.startPoint.chainNumber),
@@ -171,7 +178,7 @@ function buildSpanInput(span) {
     },
     Vault: {
       allotedBudjet: span.Vault.allotedBudjet,
-      spentBudjet: span.Vault.spentBudjet,
+      spentBudjet:   span.Vault.spentBudjet,
     },
   };
 }

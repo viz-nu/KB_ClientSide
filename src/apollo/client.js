@@ -94,7 +94,6 @@ const errorLink = onError(({ graphQLErrors, operation, forward }) => {
       });
   });
 });
-
 // ── 4. Apollo client ──────────────────────────────────────────
 export const apolloClient = new ApolloClient({
   link: from([errorLink, authLink, httpLink]),
@@ -102,15 +101,41 @@ export const apolloClient = new ApolloClient({
     typePolicies: {
       Query: {
         fields: {
-          embEntries: {
-            keyArgs: ['spanId', 'engineerId', 'status'],
-            merge(existing, incoming, { args }) {
-              if (args?.page === 1 || !existing) return incoming;
-              return {
-                ...incoming,
-                items: [...(existing.items ?? []), ...(incoming.items ?? [])],
-              };
-            },
+          // EMB_ENTRY.list — offset pagination via `page` state (PAEntries, MyEntries, FEDashboard)
+          activities: {
+            keyArgs: [
+              'status',
+              'span',
+              'project',
+              'createdBy',
+              'fromDate',
+              'toDate',
+              'page',
+              'limit',
+            ],
+          },
+          // EMB_ENTRY.facets — filter-scoped facet counts (EntryFilters / useFacets)
+          activitiesFacet: {
+            keyArgs: ['status', 'span', 'project', 'createdBy'],
+          },
+          // PROJECT_QUERIES.list
+          projects: {
+            keyArgs: ['page', 'limit'],
+          },
+          // SPAN_QUERIES.list
+          spans: {
+            keyArgs: ['page', 'limit'],
+          },
+          // USER_QUERIES.list — EngineerManagement paginates; others use page 1
+          users: {
+            keyArgs: [
+              'projects',
+              'isActive',
+              'includeSelf',
+              'role',
+              'page',
+              'limit',
+            ],
           },
         },
       },

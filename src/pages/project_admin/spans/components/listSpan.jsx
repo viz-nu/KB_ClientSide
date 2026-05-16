@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════
-// SPAN LIST — Grid of span cards.
+// SPAN LIST — Dense table, scales to hundreds of rows.
 // Props:
 //   spans     – array of span objects
 //   projects  – array of project objects (for name resolution)
@@ -7,7 +7,7 @@
 //   onView    – (span) => void
 //   onEdit    – (span) => void
 //   onDelete  – (span) => void
-//   onCreate  – () => void   (for the header action + empty state CTA)
+//   onCreate  – () => void
 // ═══════════════════════════════════════════════════════════════════
 import { useState } from "react";
 import { PageHeader, EmptyState, Spinner, ConfirmDialog } from "../../../../components/common/index.jsx";
@@ -21,11 +21,13 @@ export function SpanList({ spans = [], projects = [], loading, onView, onEdit, o
     setDelTarget(null);
   };
 
+  const completedCount = spans.filter((s) => s.status === "COMPLETED").length;
+
   return (
     <div className="fade-up">
       <PageHeader
         title="Span Management"
-        subtitle={`${spans.length} span${spans.length !== 1 ? "s" : ""} · ${spans.filter((s) => s.status === "COMPLETED").length} completed`}
+        subtitle={`${spans.length} span${spans.length !== 1 ? "s" : ""} · ${completedCount} completed`}
         actions={
           <button className="btn btn-primary" onClick={onCreate}>
             + New Span
@@ -41,7 +43,7 @@ export function SpanList({ spans = [], projects = [], loading, onView, onEdit, o
         <EmptyState
           icon="🛤️"
           title="No spans yet"
-          message="Create a span to define a section of work between two points."
+          message="Create a span to define a section of work between two route points."
           action={
             <button className="btn btn-primary" onClick={onCreate}>
               Create First Span
@@ -51,21 +53,78 @@ export function SpanList({ spans = [], projects = [], loading, onView, onEdit, o
       ) : (
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
-            gap: 16,
+            border: "1px solid var(--border)",
+            borderRadius: 12,
+            overflow: "auto",
           }}
         >
-          {spans.map((s) => (
-            <SpanCard
-              key={s._id}
-              span={s}
-              project={projects.find((p) => p._id === (s.projectId || s.project?._id))}
-              onView={() => onView(s)}
-              onEdit={() => onEdit(s)}
-              onDelete={() => setDelTarget(s)}
-            />
-          ))}
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              tableLayout: "fixed",
+              minWidth: 900,
+            }}
+          >
+            <colgroup>
+              <col style={{ width: "16%" }} /> {/* Name */}
+              <col style={{ width: "10%" }} /> {/* Project */}
+              <col style={{ width: "18%" }} /> {/* Route */}
+              <col style={{ width: "10%" }} /> {/* Status */}
+              <col style={{ width: "13%" }} /> {/* Budget utilisation */}
+              <col style={{ width: "7%" }} />  {/* Chapters */}
+              <col style={{ width: "9%" }} />  {/* Created */}
+              <col style={{ width: "9%" }} />  {/* Updated */}
+              <col style={{ width: "8%" }} />  {/* Actions */}
+            </colgroup>
+
+            <thead>
+              <tr style={{ background: "rgba(255,255,255,.03)" }}>
+                {[
+                  "Name",
+                  "Project",
+                  "Route",
+                  "Status",
+                  "Budget utilisation",
+                  "Chapters",
+                  "Created",
+                  "Updated",
+                  "Actions",
+                ].map((h) => (
+                  <th
+                    key={h}
+                    style={{
+                      padding: "10px 14px",
+                      textAlign: "left",
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: "var(--text3)",
+                      textTransform: "uppercase",
+                      letterSpacing: ".06em",
+                      borderBottom: "1px solid var(--border)",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+
+            <tbody>
+              {spans.map((s, idx) => (
+                <SpanRow
+                  key={s._id}
+                  span={s}
+                  project={projects.find((p) => p._id === (s.projectId || s.project?._id))}
+                  isLast={idx === spans.length - 1}
+                  onView={() => onView(s)}
+                  onEdit={() => onEdit(s)}
+                  onDelete={() => setDelTarget(s)}
+                />
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
@@ -81,175 +140,186 @@ export function SpanList({ spans = [], projects = [], loading, onView, onEdit, o
   );
 }
 
-// ─── Span Card ─────────────────────────────────────────────────────
-function SpanCard({ span: s, project, onView, onEdit, onDelete }) {
+// ─── SpanRow ───────────────────────────────────────────────────────
+function SpanRow({ span: s, project, isLast, onView, onEdit, onDelete }) {
   const stage = PROGRESS_STAGES.find((p) => p.value === s.status) || PROGRESS_STAGES[0];
   const spentPct =
     s.Vault?.allotedBudjet > 0
       ? Math.min(100, Math.round((s.Vault.spentBudjet / s.Vault.allotedBudjet) * 100))
-      : 0;
-  const barColor = spentPct > 85 ? "var(--red)" : spentPct > 60 ? "var(--yellow)" : "var(--green)";
+      : null;
+  const barColor =
+    spentPct > 85 ? "var(--red)" : spentPct > 60 ? "var(--yellow)" : "var(--green)";
+
+  const cellStyle = {
+    padding: "11px 14px",
+    borderBottom: isLast ? "none" : "1px solid var(--border2)",
+    fontSize: 13,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    verticalAlign: "middle",
+  };
 
   return (
-    <div
-      className="card"
-      style={{ borderTop: `3px solid ${stage.color}`, display: "flex", flexDirection: "column", gap: 0 }}
+    <tr
+      style={{ cursor: "pointer", transition: "background .1s" }}
+      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,.03)")}
+      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+      onClick={onView}
     >
-      {/* Header */}
-      <div style={{ marginBottom: 12 }}>
-        <div
-          style={{
-            display: "flex", alignItems: "center",
-            justifyContent: "space-between", marginBottom: 6,
-          }}
-        >
-          <span
+      {/* Name */}
+      <td style={{ ...cellStyle, fontWeight: 600, color: "var(--text)" }}>
+        {s.name}
+      </td>
+
+      {/* Project */}
+      <td style={cellStyle}>
+        {project ? (
+          <code
             style={{
-              fontSize: 10, fontWeight: 700, color: stage.color,
-              textTransform: "uppercase", letterSpacing: ".08em",
-              background: stage.color + "18", border: `1px solid ${stage.color}44`,
-              padding: "2px 8px", borderRadius: 10,
+              fontSize: 11,
+              color: "var(--accent)",
+              fontWeight: 600,
+              background: "rgba(244,160,28,.1)",
+              border: "1px solid rgba(244,160,28,.2)",
+              borderRadius: 5,
+              padding: "2px 6px",
             }}
           >
-            ● {stage.label}
-          </span>
-          {project && (
-            <code style={{ fontSize: 10, color: "var(--accent)", fontWeight: 600 }}>
-              {project.code}
-            </code>
-          )}
-        </div>
-        <div
-          style={{
-            fontFamily: "var(--font-head)", fontWeight: 700, fontSize: 15, marginBottom: 2,
-          }}
-        >
-          {s.name}
-        </div>
-        {project && (
-          <div style={{ fontSize: 11, color: "var(--text2)" }}>{project.name}</div>
+            {project.code}
+          </code>
+        ) : (
+          <span style={{ color: "var(--text3)" }}>—</span>
         )}
-      </div>
+      </td>
 
       {/* Route */}
-      <div
-        style={{
-          display: "flex", alignItems: "center", gap: 8, marginBottom: 12,
-          padding: "10px 12px", background: "rgba(255,255,255,.03)",
-          borderRadius: 8, border: "1px solid var(--border)",
-        }}
-      >
-        <RoutePoint label="From" point={s.startPoint} align="left" />
-        <div style={{ fontSize: 18, color: "var(--text3)", flexShrink: 0 }}>→</div>
-        <RoutePoint label="To" point={s.endPoint} align="right" />
-      </div>
+      <td style={{ ...cellStyle, whiteSpace: "nowrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+          <span
+            style={{
+              maxWidth: 90,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              fontSize: 12,
+              fontWeight: 500,
+            }}
+          >
+            {s.startPoint?.placeName || "—"}
+          </span>
+          <span style={{ color: "var(--text3)", fontSize: 12, flexShrink: 0 }}>→</span>
+          <span
+            style={{
+              maxWidth: 90,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              fontSize: 12,
+              color: "var(--text2)",
+            }}
+          >
+            {s.endPoint?.placeName || "—"}
+          </span>
+        </div>
+      </td>
 
-      {/* Vault */}
-      {s.Vault && (
-        <div style={{ marginBottom: 12 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 6 }}>
-            <VaultStat label="Budget" value={`₹${(s.Vault.allotedBudjet || 0).toLocaleString("en-IN")}`} color="var(--accent)" />
-            <VaultStat label="Spent"  value={`₹${(s.Vault.spentBudjet  || 0).toLocaleString("en-IN")}`} color="var(--text)" />
-          </div>
-          {s.Vault.allotedBudjet > 0 && (
-            <div>
+      {/* Status */}
+      <td style={cellStyle}>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: stage.color,
+            background: stage.color + "18",
+            border: `1px solid ${stage.color}44`,
+            padding: "2px 8px",
+            borderRadius: 10,
+            whiteSpace: "nowrap",
+          }}
+        >
+          ● {stage.label}
+        </span>
+      </td>
+
+      {/* Budget utilisation */}
+      <td style={cellStyle}>
+        {spentPct !== null ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div
+              style={{
+                flex: 1,
+                height: 5,
+                background: "rgba(255,255,255,.08)",
+                borderRadius: 3,
+                overflow: "hidden",
+                minWidth: 60,
+              }}
+            >
               <div
                 style={{
-                  display: "flex", justifyContent: "space-between",
-                  fontSize: 10, color: "var(--text3)", marginBottom: 3,
+                  width: `${spentPct}%`,
+                  height: "100%",
+                  background: barColor,
+                  borderRadius: 3,
                 }}
-              >
-                <span>Utilisation</span>
-                <span style={{ color: barColor, fontWeight: 600 }}>{spentPct}%</span>
-              </div>
-              <div style={{ height: 4, background: "rgba(255,255,255,.08)", borderRadius: 2, overflow: "hidden" }}>
-                <div
-                  style={{
-                    width: `${spentPct}%`, height: "100%", background: barColor,
-                    borderRadius: 2, transition: "width .4s",
-                  }}
-                />
-              </div>
+              />
             </div>
-          )}
-        </div>
-      )}
+            <span style={{ fontSize: 11, color: barColor, fontWeight: 600, flexShrink: 0 }}>
+              {spentPct}%
+            </span>
+          </div>
+        ) : (
+          <span style={{ color: "var(--text3)", fontSize: 12 }}>No budget</span>
+        )}
+      </td>
 
-      {/* Stats row */}
-      <div
-        style={{
-          display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6,
-          marginBottom: 12, paddingTop: 10, borderTop: "1px solid var(--border)",
-        }}
-      >
-        <StatCell icon="📋" value={s.chapters?.length || 0} label="Chapters" />
-        <StatCell icon="📅" value={s.createdAt ? new Date(s.createdAt).toLocaleDateString("en-IN") : "—"} label="Created" />
-      </div>
+      {/* Chapters */}
+      <td style={{ ...cellStyle, textAlign: "center" }}>
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            color: "var(--text2)",
+            background: "rgba(255,255,255,.06)",
+            border: "1px solid var(--border)",
+            borderRadius: 10,
+            padding: "2px 8px",
+          }}
+        >
+          {s.chapters?.length ?? 0}
+        </span>
+      </td>
+
+      {/* Created */}
+      <td style={{ ...cellStyle, fontSize: 11, color: "var(--text3)" }}>
+        {s.createdAt ? new Date(s.createdAt).toLocaleDateString("en-IN") : "—"}
+      </td>
+
+      {/* Updated */}
+      <td style={{ ...cellStyle, fontSize: 11, color: "var(--text3)" }}>
+        {s.updatedAt ? new Date(s.updatedAt).toLocaleDateString("en-IN") : "—"}
+      </td>
 
       {/* Actions */}
-      <div style={{ display: "flex", gap: 6, marginTop: "auto" }}>
-        <button className="btn btn-outline btn-sm" style={{ flex: 1 }} onClick={onView}>
-          👁 View
-        </button>
-        <button className="btn btn-primary btn-sm" style={{ flex: 1 }} onClick={onEdit}>
-          ✏️ Edit
-        </button>
-        <button className="btn btn-danger btn-sm" onClick={onDelete}>🗑</button>
-      </div>
-    </div>
-  );
-}
-
-function RoutePoint({ label, point, align }) {
-  const [lat, lng] = point?.pointLocation?.coordinates ?? [0, 0];
-  return (
-    <div style={{ flex: 1, minWidth: 0, textAlign: align }}>
-      <div
-        style={{
-          fontSize: 9, color: "var(--text3)", textTransform: "uppercase",
-          letterSpacing: ".07em", marginBottom: 2,
-        }}
-      >
-        {label}
-      </div>
-      <div
-        style={{
-          fontSize: 12, fontWeight: 600, overflow: "hidden",
-          textOverflow: "ellipsis", whiteSpace: "nowrap",
-        }}
-      >
-        {point?.placeName || "—"}
-      </div>
-      {lat ? (
-        <div style={{ fontSize: 10, color: "var(--text3)", fontFamily: "monospace" }}>
-          {Number(lat)}, {Number(lng)}
+      <td style={cellStyle} onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: "flex", gap: 4 }}>
+          <ActionBtn title="View" onClick={onView}>👁</ActionBtn>
+          <ActionBtn title="Edit" onClick={onEdit}>✏️</ActionBtn>
+          <ActionBtn title="Delete" onClick={onDelete} danger>🗑</ActionBtn>
         </div>
-      ) : null}
-    </div>
+      </td>
+    </tr>
   );
 }
 
-function VaultStat({ label, value, color }) {
+function ActionBtn({ children, onClick, title, danger }) {
   return (
-    <div style={{ background: "rgba(255,255,255,.03)", padding: "8px 10px", borderRadius: 8 }}>
-      <div
-        style={{
-          fontSize: 9, color: "var(--text3)", textTransform: "uppercase",
-          letterSpacing: ".07em", marginBottom: 2,
-        }}
-      >
-        {label}
-      </div>
-      <div style={{ fontSize: 13, fontWeight: 700, color, fontFamily: "monospace" }}>{value}</div>
-    </div>
-  );
-}
-
-function StatCell({ icon, value, label }) {
-  return (
-    <div style={{ textAlign: "center" }}>
-      <div style={{ fontSize: 11, color: "var(--accent)", fontWeight: 700 }}>{icon} {value}</div>
-      <div style={{ fontSize: 9, color: "var(--text3)" }}>{label}</div>
-    </div>
+    <button
+      className={`btn btn-sm ${danger ? "btn-danger" : "btn-outline"}`}
+      title={title}
+      onClick={onClick}
+      style={{ padding: "3px 7px", fontSize: 12, lineHeight: 1 }}
+    >
+      {children}
+    </button>
   );
 }

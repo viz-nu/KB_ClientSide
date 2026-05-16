@@ -211,6 +211,12 @@ export const SPAN_QUERIES = {
       designation
       name
     }
+    TargetedValues {
+      chapterId
+      itemId
+      measurementLabel
+      targetValue
+    }
     createdAt
     updatedAt
     chapters {
@@ -255,7 +261,25 @@ export const SPAN_QUERIES = {
           pointLocation { type coordinates }
         }
         status
-        chapters { ...ChapterFields }
+        chapters {
+      items {
+        label
+        description
+        measurements
+        _id
+        code
+      }
+      _id
+      code
+      color
+      name
+    }
+        TargetedValues {
+          chapterId
+          itemId
+          measurementLabel
+          targetValue
+        }
         Vault {
           allotedBudjet
           spentBudjet
@@ -273,7 +297,6 @@ export const SPAN_QUERIES = {
       }
     }
   }
-  ${CHAPTER_FRAGMENT}
       ${PAGINATION_FRAGMENT}
     `,
   update: gql` mutation UpdateSpan($id: ID!, $spanInput: SpanInput!) {
