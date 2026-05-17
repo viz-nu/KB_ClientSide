@@ -8,11 +8,11 @@ import { useMutation, useQuery } from "@apollo/client";
 import { SPAN_QUERIES, EMB_ENTRY } from "../../../apollo/gql.js";
 import { deepClean } from "../../../utils/helpers.js";
 import { addLine, removeLine, updateLine } from "../common/index.js";
-const STEPS = [
-  { label: "Span & Category", icon: "📍" },
-  { label: "Measurements",    icon: "📐" },
-  { label: "Review & Submit", icon: "✅" },
-];
+// const STEPS = [
+//   { label: "Span & Category", icon: "📍" },
+//   { label: "Measurements",    icon: "📐" },
+//   { label: "Review & Submit", icon: "✅" },
+// ];
 
 export default function NewEmbEntry() {
   const navigate = useNavigate();
@@ -78,7 +78,7 @@ export default function NewEmbEntry() {
       <PageHeader title="New e-MB Entry" subtitle="Measurement book entry" />
 
       {/* ── Step progress bar — mobile-optimised ── */}
-      <div style={{
+      {/* <div style={{
         display: "flex", alignItems: "center", justifyContent: "center",
         gap: 0, marginBottom: 24, padding: "0 4px",
       }}>
@@ -88,7 +88,6 @@ export default function NewEmbEntry() {
           const current = n === step;
           return (
             <div key={s.label} style={{ display: "flex", alignItems: "center", flex: i < STEPS.length - 1 ? 1 : 0 }}>
-              {/* Dot + label */}
               <div
                 style={{ display: "flex", flexDirection: "column", alignItems: "center", cursor: done ? "pointer" : "default" }}
                 onClick={() => done && setStep(n)}
@@ -111,27 +110,34 @@ export default function NewEmbEntry() {
                   {s.label}
                 </div>
               </div>
-              {/* Connector line */}
               {i < STEPS.length - 1 && (
                 <div style={{ flex: 1, height: 2, marginBottom: 18, marginLeft: 4, marginRight: 4, borderRadius: 2, background: done ? "var(--green)" : "rgba(255,255,255,.08)", transition: "background .3s" }} />
               )}
             </div>
           );
         })}
-      </div>
+      </div> */}
 
       {/* ── Card ── */}
       <div className="card" style={{ borderRadius: 18, padding: "18px 16px" }}>
-        {step === 1 && (
+        {/* {step === 1 && (
+          <> */}
           <StepBasicInfo
             form={form} set={set} captureGPS={captureGPS}
             spans={spans} spansLoading={spansLoading} spansError={spansError}
             activeSpan={activeSpan} activeChapter={activeChapter}
             handleSpanChange={handleSpanChange} handleChapterChange={handleChapterChange}
           />
-        )}
+           <StepLineItems
+            form={form} set={set} activeChapter={activeChapter}
+            addLine={addLine} updateLine={updateLine} removeLine={removeLine}
+          />
+          <StepSubmit form={form} activeSpan={activeSpan} activeChapter={activeChapter} />
+          {/* </>
+          
+        )} */}
 
-        {step === 2 && (
+        {/* {step === 2 && (
           <StepLineItems
             form={form} set={set} activeChapter={activeChapter}
             addLine={addLine} updateLine={updateLine} removeLine={removeLine}
@@ -140,7 +146,7 @@ export default function NewEmbEntry() {
 
         {step === 3 && (
           <StepSubmit form={form} activeSpan={activeSpan} activeChapter={activeChapter} />
-        )}
+        )} */}
 
         {/* ── Navigation ── */}
         <div style={{ display: "flex", gap: 10, marginTop: 28, paddingTop: 18, borderTop: "1px solid var(--border)" }}>
@@ -150,11 +156,12 @@ export default function NewEmbEntry() {
             style={{ flex: 1, minHeight: 48, fontSize: 14 }}
             onClick={() => step === 1 ? navigate("/my-entries") : setStep((s) => s - 1)}
           >
-            {step === 1 ? "Cancel" : "← Back"}
+            {/* {step === 1 ? "Cancel" : "← Back"} */}
+            Cancel
           </button>
 
           {/* Next / Submit */}
-          {step < 3 ? (
+          {/* {step < 3 ? (
             <button
               className="btn btn-primary"
               style={{ flex: 2, minHeight: 48, fontSize: 14, fontWeight: 700 }}
@@ -162,7 +169,7 @@ export default function NewEmbEntry() {
             >
               Next →
             </button>
-          ) : (
+          ) : ( */}
             <button
               className="btn btn-primary"
               style={{ flex: 2, minHeight: 48, fontSize: 14, fontWeight: 700 }}
@@ -171,7 +178,7 @@ export default function NewEmbEntry() {
             >
               {saving ? <Spinner size={16} color="var(--navy)" /> : "✓ Submit Entry"}
             </button>
-          )}
+          {/* )} */}
         </div>
       </div>
     </div>
