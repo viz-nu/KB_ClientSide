@@ -10,9 +10,9 @@ import {
 import EmbEntryDetailModal from "../../../components/common/EmbEntryDetailModal.jsx";
 import {
   PAGE_LIMIT,
-  emptyFilters,
-  hasActiveFilters,
-  activeCount,
+  emptyEntryFilters,
+  hasActiveEntryFilters,
+  activeCountEntry,
   useFacets,
   FilterPanel,
   ActiveChips,
@@ -21,17 +21,14 @@ import {
 import EntryActionModal from "../../../components/common/EntryActionModal.jsx";
 import EntryTable from "../../../components/common/EntryTable.jsx";
 import { useAuth } from "../../../hooks/useAuth.js";
-
-// PA sees every status except DRAFT (no actions on un-submitted entries)
-const PA_STATUS_OPTIONS = ["SUBMITTED", "APPROVED", "REJECTED"];
-
+import { EMB_ENTRY_FILTER_SECTIONS } from "../../../constants/FilterConstants.js";
 // ═══════════════════════════════════════════════════════════════════
 // PAEntries — project admin review and action view
 // ═══════════════════════════════════════════════════════════════════
 export default function PAEntries() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [filters, setFilters] = useState(emptyFilters);
+  const [filters, setFilters] = useState(emptyEntryFilters);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(null);
   const [actionModal, setActionModal] = useState(null);
@@ -75,7 +72,7 @@ export default function PAEntries() {
     setPage(1);
   };
   const resetFilters = () => {
-    setFilters(emptyFilters());
+    setFilters(emptyEntryFilters());
     setPage(1);
   };
 
@@ -111,7 +108,7 @@ export default function PAEntries() {
     navigate(`/progress-report?${params.toString()}`);
   };
 
-  const active = hasActiveFilters(filters);
+  const active = hasActiveEntryFilters(filters);
 
   return (
     <div className="fade-up">
@@ -133,7 +130,7 @@ export default function PAEntries() {
                   : {}
               }
             >
-              ⚙ Filters{active ? ` (${activeCount(filters)})` : ""}
+              ⚙ Filters{active ? ` (${activeCountEntry(filters)})` : ""}
             </button>
             <button className="btn btn-outline" onClick={handleProgressReport}>
               📊 Progress Report
@@ -151,12 +148,18 @@ export default function PAEntries() {
           onChange={applyFilter}
           onReset={resetFilters}
           onClose={() => setPanelOpen(false)}
-          statusOptions={PA_STATUS_OPTIONS} // PA skips DRAFT
+          statusOptions={[
+            "SUBMITTED",
+            "APPROVED",
+            "REJECTED"
+          ]}
+          sections={EMB_ENTRY_FILTER_SECTIONS}
         />
       )}
 
       {active && (
         <ActiveChips
+          sections={EMB_ENTRY_FILTER_SECTIONS}
           filters={filters}
           labelCache={labelCache}
           onChange={applyFilter}

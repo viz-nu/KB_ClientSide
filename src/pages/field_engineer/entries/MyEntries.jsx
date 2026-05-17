@@ -11,23 +11,23 @@ import EmbEntryDetailModal from "../../../components/common/EmbEntryDetailModal.
 import EntriesTable from "../../../components/common/EntriesTable.jsx";
 import {
   PAGE_LIMIT,
-  ALL_STATUS_OPTIONS,
-  emptyFilters,
-  hasActiveFilters,
-  activeCount,
+  emptyEntryFilters,
+  hasActiveEntryFilters,
+  activeCountEntry,
   FilterPanel,
   ActiveChips,
   Pagination,
   useFacets,
 } from "../../../components/common/EntryFilters.jsx";
 import { useAuth } from "../../../hooks/useAuth.js";
+import { EMB_ENTRY_FILTER_SECTIONS } from "../../../constants/FilterConstants.js";
 // ═══════════════════════════════════════════════════════════════════
 // MyEntries — field engineer's own submissions
 // ═══════════════════════════════════════════════════════════════════
 export default function MyEntries() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [filters, setFilters] = useState(emptyFilters);
+  const [filters, setFilters] = useState(emptyEntryFilters);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(null);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -58,7 +58,7 @@ export default function MyEntries() {
     setPage(1);
   };
   const resetFilters = () => {
-    setFilters(emptyFilters());
+    setFilters(emptyEntryFilters());
     setPage(1);
   };
 
@@ -73,7 +73,7 @@ export default function MyEntries() {
   //   navigate(`/progress-report?${params.toString()}`);
   // };
 
-  const active = hasActiveFilters(filters);
+  const active = hasActiveEntryFilters(filters);
   return (
     <div className="fade-up">
       {!selected && (
@@ -96,7 +96,7 @@ export default function MyEntries() {
                       : {}
                   }
                 >
-                  ⚙ Filters{active ? ` (${activeCount(filters)})` : ""}
+                  ⚙ Filters{active ? ` (${activeCountEntry(filters)})` : ""}
                 </button>
                 {/* <button className="btn btn-outline" onClick={handleProgressReport}>
               📊 Progress Report
@@ -120,12 +120,18 @@ export default function MyEntries() {
               onChange={applyFilter}
               onReset={resetFilters}
               onClose={() => setPanelOpen(false)}
-              statusOptions={ALL_STATUS_OPTIONS} // engineer sees DRAFT too
+              statusOptions={[
+                "SUBMITTED",
+                "APPROVED",
+                "REJECTED"
+              ]}
+              sections={EMB_ENTRY_FILTER_SECTIONS}
             />
           )}
 
           {active && (
             <ActiveChips
+              sections={EMB_ENTRY_FILTER_SECTIONS}
               filters={filters}
               labelCache={labelCache}
               onChange={applyFilter}

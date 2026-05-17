@@ -178,6 +178,9 @@ export const PROJECT_QUERIES = {
 // ─────────────────────────────────────────────
 
 export const SPAN_QUERIES = {
+  facets: gql`query spansFacet($status: String, $projects: [ID], $startPoints: [String], $endPoints: [String]) {
+    spansFacet(status: $status, projects: $projects, startPoints: $startPoints, endPoints: $endPoints)
+  }`,
   create: gql`mutation createSpan($spanInput: SpanInput!) {
     createSpan(spanInput: $spanInput) {_id}
   }`,
@@ -242,8 +245,8 @@ export const SPAN_QUERIES = {
 }
 `,
   //remove:gql``,
-  list: gql`query getSpans($page: Int, $limit: Int) {
-    spans(page: $page, limit: $limit) {
+  list: gql`query getSpans($page: Int, $limit: Int, $status: String, $projects: [ID], $startPoints: [String], $endPoints: [String]) {
+    spans(page: $page, limit: $limit, status: $status, projects: $projects, startPoints: $startPoints, endPoints: $endPoints) {
       data {
         _id
         project {

@@ -25,6 +25,7 @@ import MyEntries from './pages/field_engineer/entries/MyEntries.jsx';
 
 import NewEmbEntry from './pages/field_engineer/new-entry/NewEmbEntry.jsx';
 import ProjectManagement from './pages/project_admin/projects/Projectmanagement.jsx';
+import SpanListings from './pages/field_engineer/spans/SpanList.jsx';
 
 
 function AppLayout() {
@@ -70,6 +71,7 @@ function AppRoutes() {
       <Route path="/dashboard"  element={<FEDashboard />} />
       <Route path="/my-entries" element={<MyEntries />} />
       <Route path="/new-entry"  element={<NewEmbEntry />} />
+      <Route path="/spans"     element={<SpanListings />} />
       <Route path="*"           element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );

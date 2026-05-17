@@ -15,6 +15,7 @@ import { SpanList } from "./components/listSpan.jsx";
 import { CreateSpan } from "./components/createSpan.jsx";
 import { SpanDetail } from "./components/spanDetails.jsx";
 import { UpdateSpan } from "./components/updateSpan.jsx";
+import { emptySpanFilters, PAGE_LIMIT } from "../../../components/common/EntryFilters.jsx";
 
 // ── views ──────────────────────────────────────────────────────────
 const VIEWS = {
@@ -27,7 +28,14 @@ const VIEWS = {
 export default function SpanManagement() {
   const [view, setView] = useState(VIEWS.LIST);
   const [activeSpan, setActive] = useState(null);
-
+  const [filters, setFilters] = useState(emptySpanFilters);
+  const applyFilter = (patch) => {
+    setFilters((f) => ({ ...f, ...patch }));
+  };
+  const resetFilters = () => {
+    setFilters(emptySpanFilters());
+  };
+  const [page, setPage] = useState(1);
   // ── data ──────────────────────────────────────────────────────
   const {
     data: spansData,
@@ -35,14 +43,13 @@ export default function SpanManagement() {
     refetch: spansRefetch,
   } = useQuery(SPAN_QUERIES.list, {
     fetchPolicy: "cache-and-network",
-    variables: { page: 1, limit: 10 },
+    variables: { page: page, limit: PAGE_LIMIT, status: filters.status || undefined, projects: filters.projects.length ? filters.projects : undefined, startPoints: filters.startPoints.length ? filters.startPoints : undefined, endPoints: filters.endPoints.length ? filters.endPoints : undefined },
   });
 
   const { data: projectsData } = useQuery(PROJECT_QUERIES.list, {
     fetchPolicy: "cache-and-network",
     variables: { page: 1, limit: 10 },
   });
-
   const [createSpan] = useMutation(SPAN_QUERIES.create);
   const [updateSpan] = useMutation(SPAN_QUERIES.update);
 
@@ -123,6 +130,9 @@ export default function SpanManagement() {
     default:
       return (
         <SpanList
+          filters={filters}
+          applyFilter={applyFilter}
+          resetFilters={resetFilters}
           spans={spans}
           projects={projects}
           loading={spansLoading}

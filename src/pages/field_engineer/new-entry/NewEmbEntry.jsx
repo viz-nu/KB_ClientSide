@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { PageHeader, Spinner } from "../../../components/common/index.jsx";
 import StepBasicInfo from "./components/StepBasicInfo.jsx";
 import StepLineItems from "./components/StepLineItems.jsx";
@@ -16,11 +16,13 @@ const STEPS = [
 
 export default function NewEmbEntry() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const querySpanId = searchParams.get("spanId") ?? "";
   const [createEmbEntry] = useMutation(EMB_ENTRY.create);
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    spanId: "",
+    spanId: querySpanId,
     chapter: "",
     locationDescription: "",
     lineItems: [],

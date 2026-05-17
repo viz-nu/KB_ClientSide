@@ -5,16 +5,14 @@
 //   projects  – array of project objects (for name resolution)
 //   loading   – boolean
 //   onView    – (span) => void
-//   onEdit    – (span) => void
-//   onDelete  – (span) => void
 //   onCreate  – () => void
 // ═══════════════════════════════════════════════════════════════════
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   PageHeader,
   EmptyState,
   Spinner,
-  ConfirmDialog,
 } from "../../../../components/common/index.jsx";
 import { PROGRESS_STAGES } from "../../../../constants/spanConstants.js";
 import {
@@ -30,19 +28,12 @@ export function SpanList({
   projects = [],
   loading,
   onView,
-  onEdit,
-  onDelete,
-  onCreate,
   filters,
   applyFilter,
   resetFilters,
 }) {
-  const [delTarget, setDelTarget] = useState(null);
   const { facets, facetLoading, labelCache } = useFacets("SPAN");
-  const handleDeleteConfirm = () => {
-    onDelete(delTarget);
-    setDelTarget(null);
-  };
+  const navigate = useNavigate();
   const [panelOpen, setPanelOpen] = useState(false);
   const completedCount = spans.filter((s) => s.status === "COMPLETED").length;
   const active = hasActiveSpanFilters(filters);
@@ -64,9 +55,7 @@ export function SpanList({
             >
               ⚙ Filters {active ? ` (${activeCountSpan(filters)})` : ""}
             </button>
-            <button className="btn btn-primary" onClick={onCreate}>
-              + New Span
-            </button>
+            <button className="btn btn-primary" onClick={() => navigate("/new-entry")}>+ New Entry</button>
           </div>
         }
       />
@@ -102,12 +91,7 @@ export function SpanList({
         <EmptyState
           icon="🛤️"
           title="No spans yet"
-          message="Create a span to define a section of work between two route points."
-          action={
-            <button className="btn btn-primary" onClick={onCreate}>
-              Create First Span
-            </button>
-          }
+          message="Wait untill the project admin assigns you  a span."
         />
       ) : (
         <div
@@ -180,29 +164,19 @@ export function SpanList({
                   )}
                   isLast={idx === spans.length - 1}
                   onView={() => onView(s)}
-                  onEdit={() => onEdit(s)}
-                  onDelete={() => setDelTarget(s)}
                 />
               ))}
             </tbody>
           </table>
         </div>
       )}
-
-      {delTarget && (
-        <ConfirmDialog
-          danger
-          message={`Delete span "${delTarget.name}"? This cannot be undone.`}
-          onConfirm={handleDeleteConfirm}
-          onCancel={() => setDelTarget(null)}
-        />
-      )}
     </div>
   );
 }
 
 // ─── SpanRow ───────────────────────────────────────────────────────
-function SpanRow({ span: s, project, isLast, onView, onEdit, onDelete }) {
+function SpanRow({ span: s, project, isLast, onView }) {
+  const navigate = useNavigate();
   const stage =
     PROGRESS_STAGES.find((p) => p.value === s.status) || PROGRESS_STAGES[0];
   const spentPct =
@@ -385,11 +359,11 @@ function SpanRow({ span: s, project, isLast, onView, onEdit, onDelete }) {
           <ActionBtn title="View" onClick={onView}>
             👁
           </ActionBtn>
-          <ActionBtn title="Edit" onClick={onEdit}>
-            ✏️
-          </ActionBtn>
-          <ActionBtn title="Delete" onClick={onDelete} danger>
-            🗑
+          <ActionBtn
+            title="New entry"
+            onClick={() => navigate(`/new-entry?spanId=${s._id}`)}
+          >
+            ➕
           </ActionBtn>
         </div>
       </td>

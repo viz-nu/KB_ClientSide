@@ -33,6 +33,7 @@ const NAV_CONFIG = {
       items: [
         { to: "/dashboard", icon: "📊", label: "My Dashboard" },
         { to: "/new-entry", icon: "➕", label: "New Entry" },
+        { to: "/spans", icon: "🧩", label: "Spans" },
         { to: "/my-entries", icon: "📋", label: "My Entries" },
       ],
     },

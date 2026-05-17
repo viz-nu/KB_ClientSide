@@ -116,12 +116,6 @@ export default function EntryTable({ filtered, setSelected, handleAction }) {
                   >
                     ✕ Reject
                   </button>
-                  <button
-                    className="btn btn-outline btn-sm"
-                    onClick={() => handleAction(e, "RETURN")}
-                  >
-                    ↩ Return
-                  </button>
                 </div>
               ) : (
                 <button
